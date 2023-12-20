@@ -1,0 +1,4 @@
+redis
+celery
+pretty-errors
+icecream

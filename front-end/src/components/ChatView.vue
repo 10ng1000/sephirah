@@ -2,6 +2,7 @@
 import { ref, defineCustomElement} from 'vue';
 import 'deep-chat';
 import HtmlMessage from './HtmlMessage.ce.vue';
+import { Toaster, toast } from 'vue-sonner';
 
 //注册自定义组件
 const HtmlMessageElement = defineCustomElement(HtmlMessage);
@@ -11,17 +12,17 @@ const messages = ref([
   { "text": "Hey, how are you?", "role": "user" },
   { "text": "I am doing great, how about you?", "role": "ai" },
   { "text": "What is the meaning of life?", "role": "user" },
-  { "role": "ai" , "html": "<html-message>This completely depends on the person.</html-message>"}
+  { "role": "ai" , "html": "<html-message text='This completely depends on the person.'></html-message>"}
 ])
 //deep-chat的引用
 const chatElementRef = ref(null);
 //
 chatElementRef.htmlClassUtilities = {}
-
 </script>
 
 
 <template>
+  <Toaster />
   <deep-chat ref ="chatElementRef" style="
     width: 100%;
     border: 0px;
@@ -32,12 +33,19 @@ chatElementRef.htmlClassUtilities = {}
     margin-top: 5vh;" :textInput='{
       "styles": {
         "container": {
-          "borderRadius": "20px",
+          "borderRadius": "0.7rem",
           "border": "unset",
+          "height": "300%",
           "width": "60%",
-          "boxShadow": "0px 0.3px 0.9px rgba(0, 0, 0, 0.12), 0px 1.6px 3.6px rgba(0, 0, 0, 0.16)"
+          "lineHeight": "3rem",
+          "textAlign": "center",
+          "boxShadow": "0px 0.3px 0.9px rgba(0, 0, 0, 0.12), 0px 1.6px 3.6px rgba(0, 0, 0, 0.16)",
         },
-        "text": { "padding": "10px", "paddingLeft": "15px", "paddingRight": "34px" }
+        "text": {
+          "textAlign": "left",
+          "fontSize": "1rem",
+          "margin-left": "1rem",
+         }
       },
       "placeholder": { "text": "Ask me anything...", "style": { "color": "#606060" } }
     }' :messageStyles='{
@@ -61,19 +69,11 @@ chatElementRef.htmlClassUtilities = {}
     },
     "ai": { "bubble": { "background": "rgba(255,255,255,0.7) ", "marginLeft": "20%" } }
   }
-}' :microphone='{
-  "button": {
-    "default": {
-      "container": { "default": { "bottom": "1em", "right": "0.6em", "borderRadius": "20px", "width": "1.9em", "height": "1.9em" } },
-      "svg": { "styles": { "default": { "bottom": "0.4em", "left": "0.3em" } } }
-    },
-    "position": "inside-right"
-  }
 }' :submitButtonStyles='{
-  "position": "outside-right",
+  "position": "inside-right",
   "submit": {
     "container": {
-      "default": { "bottom": "0.75em", "borderRadius": "25px", "padding": "5px", "backgroundColor": "unset" },
+      "default": { "marginBottom": "1rem", "borderRadius": "1rem", "margin-right": "1rem", "backgroundColor": "unset"},
       "hover": { "backgroundColor": "#b0deff4f" },
       "click": { "backgroundColor": "#b0deffb5" }
     },

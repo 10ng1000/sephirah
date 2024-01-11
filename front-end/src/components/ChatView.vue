@@ -35,16 +35,15 @@ chatElementRef.htmlClassUtilities = {}
         "container": {
           "borderRadius": "0.7rem",
           "border": "unset",
-          "height": "300%",
           "width": "60%",
-          "lineHeight": "3rem",
           "textAlign": "center",
           "boxShadow": "0px 0.3px 0.9px rgba(0, 0, 0, 0.12), 0px 1.6px 3.6px rgba(0, 0, 0, 0.16)",
         },
         "text": {
-          "textAlign": "left",
+          "padding": "1rem",
           "fontSize": "1rem",
           "margin-left": "1rem",
+          "margin-right": "2rem",
          }
       },
       "placeholder": { "text": "Ask me anything...", "style": { "color": "#606060" } }
@@ -73,7 +72,7 @@ chatElementRef.htmlClassUtilities = {}
   "position": "inside-right",
   "submit": {
     "container": {
-      "default": { "marginBottom": "1rem", "borderRadius": "1rem", "margin-right": "1rem", "backgroundColor": "unset"},
+      "default": { "margin": "0.6rem 0.6rem", "borderRadius": "1rem", "backgroundColor": "unset"},
       "hover": { "backgroundColor": "#b0deff4f" },
       "click": { "backgroundColor": "#b0deffb5" }
     },

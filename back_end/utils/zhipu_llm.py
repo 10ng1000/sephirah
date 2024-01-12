@@ -6,6 +6,8 @@ from langchain.schema.output import GenerationChunk
 from langchain.embeddings.base import Embeddings
 from typing import Optional, List, Any, Mapping, Iterator, Callable
 from http import HTTPStatus  
+import re
+import json
 #import pretty_errors
 
 zhipuai.api_key = "b1f62968c571a91d5cbf0deb26853e75.O8kJveyevNPTzpZo"
@@ -31,7 +33,7 @@ class ZhipuLLM(LLM):
         for event in response.events():  
             if event.event == "add":
                 yield GenerationChunk(
-                    text=event.data,
+                    text=event.data
                 )
             elif event.event == "finish":
                 yield GenerationChunk(
@@ -60,7 +62,11 @@ class ZhipuLLM(LLM):
             raise RuntimeError(  
                 f"Zhipu API returned an error: {response['code']} {response['msg']}"  
             )
-        return response['data']['choices'][0]['content']
+        content = response['data']['choices'][0]['content']
+        r1 = re.sub(r'\\"', '"',content)
+        r2 = r1.replace("\\n", "\n")
+        r3 = r2.replace('"，', '",')
+        return r3
     
     @property  
     def _identifying_params(self) -> Mapping[str, Any]:  

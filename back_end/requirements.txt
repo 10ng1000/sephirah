@@ -1,5 +1,8 @@
 redis
 celery
 django
-pretty-errors
+zhipuai
 icecream
+pretty-errors
+langchain
+chromadb

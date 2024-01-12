@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from .request_client import Client
+from utils.request_client import Client
 import json
 import argparse
 
@@ -158,7 +158,6 @@ def get_label_dict(client: Client, project_id: int):
         relation_dict[relation["text"]] = relation["id"]
     return span_dict, relation_dict
 
-
 def start(article_name, output_name, post_labels, project_id, doc_id, spliter, base_path):
     # 初始化doccano客户端
     client = Client()
@@ -183,20 +182,3 @@ def start(article_name, output_name, post_labels, project_id, doc_id, spliter, b
     dict_span, dict_relation = get_label_dict(client=client, project_id=project_id)
     # 上传标注
     post_annotation(client=client, output=output, article=article, span_dict=dict_span, relation_dict=dict_relation, project_id=project_id, doc_id=doc_id)
-
-
-
-if __name__ == "__main__":
-    # 初始化doccano客户端
-    arg_parser = argparse.ArgumentParser() 
-    arg_parser.add_argument("--username", type=str)
-    arg_parser.add_argument("--password", type=str)
-    arg_parser.add_argument("--article_name", type=str)
-    arg_parser.add_argument("--output_name", type=str)
-    arg_parser.add_argument("--post_labels", type=bool)
-    arg_parser.add_argument("--project_id", type=int)
-    arg_parser.add_argument("--doc_id", type=int)
-    arg_parser.add_argument("--spliter", type=str)
-    arg_parser.add_argument("--base_path", type=str)
-    args = arg_parser.parse_args()
-    start(args.article_name, args.output_name, args.post_labels, args.project_id, args.doc_id, args.spliter, args.base_path)

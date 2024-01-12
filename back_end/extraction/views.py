@@ -4,13 +4,13 @@ import mysite
 from celery.result import AsyncResult
 import celery.app.control
 from . import models
-from llm_relation_extraction.tasks import extraction_task, to_doccano_task
-from llm_relation_extraction.models import Project
+from extraction.tasks import extraction_task, to_doccano_task
+from extraction.models import Project
 from django.http import HttpResponse
 from django.views import View
 import os
 from celery import Celery
-from llm_relation_extraction.request_client import Client
+from back_end.extraction.utils.request_client import Client
 
 
 class ImportData(View):

@@ -73,8 +73,6 @@ class ZhipuLLM(LLM):
         """Get the identifying parameters."""  
         return {"model": self.model}  
 
-    def get_response(self, messages):
-        return zhipuai.model_api.invoke(model=self.model, prompt=messages)
 
 class ZhipuEmbedding(Embeddings):
     model: str = 'text_embedding'

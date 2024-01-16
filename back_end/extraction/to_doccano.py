@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from utils.request_client import Client
+from utils.request_doccano import Client
 import json
 import argparse
 

@@ -4,24 +4,24 @@
 '''
 from langchain.prompts import PromptTemplate
 from langchain.llms.base import LLM
-from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.agent_toolkits import FileManagementToolkit
 from langchain_community.document_loaders import TextLoader
 from utils.triplet_parser import TripletParser
+from utils.chatglm_llm import Chatglm
 from utils.zhipu_llm import ZhipuLLM
 import argparse
 
 
 class Extraction():
-    def __init__(self, file_name: str, context: str = None, chunk_size: int = 200, separator: str ='。', model: LLM = ZhipuLLM,):
+    def __init__(self, file_name: str, context: str = None, model: LLM = ZhipuLLM()):
+        '''模型默认为Chatglm，如果效果一般可以换为zhipu的api'''
         self.file_name = file_name
-        self.model = ZhipuLLM()
+        self.model = model
         self.name = file_name
         if context is None:
             context = file_name
         self.context = context
         # 这里不能设置chunk_size，因为之后要匹配到原文中
-        self.text_spliter = CharacterTextSplitter(separator=separator)
         self.parser = TripletParser()
         tool_kit = FileManagementToolkit(
             root_dir=(f"./data/{self.file_name}"),
@@ -30,13 +30,15 @@ class Extraction():
         self.read_tool, self.write_tool, self.list_tool = tool_kit.get_tools()
         self.output_file = f'{file_name}_output.json'
 
-    def run(self, spliter = '。'):
+    def run(self, separator: str = "。"):
         '''从给定的文档中提取三元组。首先进行分块（始终一致），然后对于每个分块，提取出其中的三元组（可能多个），然后加上index写入文件中'''
         '''中途可能被中断，因此从文件里读写记录点，并且实时把输出写入文件'''
         
-        # 从文件中读取需要提取的三元组源输入，这里的文档是已经去除了空行了的
-        doc = TextLoader(f'./data/{self.file_name}/{self.file_name}.txt').load()
-        data = self.text_spliter.split_documents(doc)
+        # 从文件中读取需要提取的三元组源输入，分块，并去掉split可能生成的空块
+        data = TextLoader(f'./data/{self.file_name}/{self.file_name}.txt').load()[0].page_content.split(separator)
+        if data[-1] == '':
+            data = data[:-1]
+        print(data)
         # 从文件中读取记录点，如果没有记录点，就从头开始，记录点表示需要从哪个块开始提取
         check_point = self.read_tool.run({"file_path" : f"check_point"})
         try:

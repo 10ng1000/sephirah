@@ -3,33 +3,44 @@ import { ref, defineCustomElement} from 'vue';
 import 'deep-chat';
 import HtmlMessage from './HtmlMessage.ce.vue';
 import { Toaster, toast } from 'vue-sonner';
+import { onMounted } from 'vue';
 
 //注册自定义组件
 const HtmlMessageElement = defineCustomElement(HtmlMessage);
 customElements.define('html-message', HtmlMessageElement);
 
 const messages = ref([
-  { "text": "Hey, how are you?", "role": "user" },
-  { "text": "I am doing great, how about you?", "role": "ai" },
-  { "text": "What is the meaning  ", "role": "user" },
   { "role": "ai" , "html": "<html-message text='This completely depends on the person.'></html-message>"}
 ])
-//deep-chat的引用
-const chatElementRef = ref(null);
-//
-chatElementRef.htmlClassUtilities = {}
+const now_message = ref('')
+function responseInterceptor (response) {
+    if (response.end != true) {
+      now_message.value += response.message
+      return {html: `<html-message text='${now_message.value}'></html-message>`, overwrite: true}
+    }
+    else {
+      const ret = {html: `<html-message text='${now_message.value}'></html-message>`, overwrite: true}
+      now_message.value = ''
+      return ret
+    }
+  }
+function requestInterceptor (request) {
+    request.body = {message: request.body.messages[0].text}
+    return request
+  }
 </script>
 
 
 <template>
   <Toaster />
-  <deep-chat ref ="chatElementRef"
+  <deep-chat
     :request='{
       "url": "http://localhost:8000/chat/sse_invoke",
       "method": "POST",
       "headers": { "Content-Type": "application/json" },
-      "additionalBodyProps": {"message": "你好"}
     }'
+    :responseInterceptor='responseInterceptor'
+    :requestInterceptor='requestInterceptor'
     stream="true"
     style="
     width: 100%;
@@ -65,6 +76,7 @@ chatElementRef.htmlClassUtilities = {}
         "backgroundColor": "unset",
         "marginTop": "10px",
         "marginBottom": "10px",
+        "max-width": "50%",
         "boxShadow": "0px 0.3px 0.9px rgba(0, 0, 0, 0.12), 0px 1.6px 3.6px rgba(0, 0, 0, 0.16)"
       }
     },

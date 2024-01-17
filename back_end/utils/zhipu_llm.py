@@ -35,11 +35,12 @@ class ZhipuLLM(LLM):
             if chunk.choices[0].finish_reason == "stop":
                 yield GenerationChunk(
                     text='',
+                    generation_info={'stop': True}
                 )
             else:
                 yield GenerationChunk(
-                    text=chunk.choices[0].delta.content
-                    #generation_info=event.meta
+                    text=chunk.choices[0].delta.content,
+                    generation_info={'stop': False}
                 )
 
     def _call(
@@ -97,7 +98,7 @@ class ZhipuLLM(LLM):
 if __name__ == "__main__":
     ZhipuLLM = ZhipuLLM()
     ic(ZhipuLLM.invoke("你好"))
-    for chunk in ZhipuLLM.stream("你好"):
+    for chunk in ZhipuLLM.stream("你知道sephirah是什么吗？"):
         print(chunk, end="", flush=True)
     # ZhipuEmbedding = ZhipuEmbedding()
     # ic(ZhipuEmbedding.embed_documents(["你好", "你好吗"]))

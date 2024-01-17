@@ -1,7 +1,6 @@
 <!-- 自定义用于显示弹出的message的webcomponent组件，以适配deepchat -->
 <script setup>
 import {ref} from 'vue';
-import { onMounted } from 'vue';
 import {toast} from "vue-sonner";
 const thumb_up = ref('thumb_up_off_alt');
 const thumb_down = ref('thumb_down_off_alt');
@@ -9,7 +8,7 @@ const isThumbUpJumping = ref(false);
 const isThumbDownJumping = ref(false);
 const props = defineProps({
   text: {
-    type: String
+    type: String,
   }
 });
 
@@ -49,7 +48,7 @@ function changeThumbDown(){
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
         rel="stylesheet">
   <div>
-    <p v-if="props.text">{{ props.text }}</p>
+    <p>{{ text }}</p>
   </div>
   <hr/>
   <div class="buttons">

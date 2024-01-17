@@ -1,29 +1,23 @@
 services:
   web:
-    build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    build: 
+      context: .
+      target: 'python-develop-stage'
+    command: /bin/sh -c "pip3 install -q --no-cache-dir -r requirements.txt && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
     ports:
       - "8000:8000"
     restart: always
-    logging:
-      options:
-        max-size: "200k"
-        max-file: "10"
-        log-path: "./logs"
     depends_on:
       - celery
   
   celery:
-    build: .
-    command: celery -A mysite worker -l info
+    build: 
+      context: .
+      target: 'python-develop-stage'
+    command: /bin/sh -c "pip3 install -q --no-cache-dir -r requirements.txt && celery -A mysite worker -l info"
     restart: always
-    logging:
-      options:
-        max-size: "200k"
-        max-file: "10"
-        log-path: "./logs"
     volumes:
       - .:/app
 

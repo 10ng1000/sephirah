@@ -1,6 +1,6 @@
-FROM python:3.10
+FROM python:3.10 as python-develop-stage
 WORKDIR /app
 COPY requirements.txt requirements.txt
-RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && pip3 install --no-cache-dir -r requirements.txt
+RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 COPY . .
 EXPOSE 8000

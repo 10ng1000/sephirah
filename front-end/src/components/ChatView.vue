@@ -11,7 +11,7 @@ customElements.define('html-message', HtmlMessageElement);
 const messages = ref([
   { "text": "Hey, how are you?", "role": "user" },
   { "text": "I am doing great, how about you?", "role": "ai" },
-  { "text": "What is the meaning of life?", "role": "user" },
+  { "text": "What is the meaning  ", "role": "user" },
   { "role": "ai" , "html": "<html-message text='This completely depends on the person.'></html-message>"}
 ])
 //deep-chat的引用
@@ -23,11 +23,19 @@ chatElementRef.htmlClassUtilities = {}
 
 <template>
   <Toaster />
-  <deep-chat ref ="chatElementRef" style="
+  <deep-chat ref ="chatElementRef"
+    :request='{
+      "url": "http://localhost:8000/chat/sse_invoke",
+      "method": "POST",
+      "headers": { "Content-Type": "application/json" },
+      "additionalBodyProps": {"message": "你好"}
+    }'
+    stream="true"
+    style="
     width: 100%;
     border: 0px;
     height: 90vh;
-    border-radius: 10px;
+    border-radius: 0.5rem;
     border-color: #e4e4e4;
     font-size: medium;
     margin-top: 5vh;" :textInput='{
@@ -107,7 +115,7 @@ chatElementRef.htmlClassUtilities = {}
       }
     }
   }
-}' :initialMessages='messages' :demo="true" :stream="true" >
+}' :initialMessages='messages' >
 </deep-chat>
 </template>
 

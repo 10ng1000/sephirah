@@ -7,7 +7,6 @@ from langchain.llms.base import LLM
 from langchain_community.agent_toolkits import FileManagementToolkit
 from langchain_community.document_loaders import TextLoader
 from utils.triplet_parser import TripletParser
-from utils.chatglm_llm import Chatglm
 from utils.zhipu_llm import ZhipuLLM
 import argparse
 

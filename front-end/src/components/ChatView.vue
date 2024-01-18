@@ -2,16 +2,23 @@
 import { ref, defineCustomElement} from 'vue';
 import 'deep-chat';
 import HtmlMessage from './HtmlMessage.ce.vue';
-import { Toaster, toast } from 'vue-sonner';
+import { Toaster} from 'vue-sonner';
 import { onMounted } from 'vue';
 
-//注册自定义组件
-const HtmlMessageElement = defineCustomElement(HtmlMessage);
-customElements.define('html-message', HtmlMessageElement);
+const htmlMessage = ref(null);
 
+onMounted(() => {
+  //注册自定义组件
+  const HtmlMessageElement = defineCustomElement(HtmlMessage);
+  customElements.define('html-message', HtmlMessageElement);
+})
+
+//欢迎信息
 const messages = ref([
-  { "role": "ai" , "html": "<html-message text='This completely depends on the person.'></html-message>"}
+  { "role": "ai" , "html": "<html-message text='你好，我是sephirah，请问有什么我可以帮忙的吗？'></html-message>"}
 ])
+
+//自定义的response拦截器，用于将后端返回的数据转换为deepchat需要的格式，往下的request拦截器同理
 const now_message = ref('')
 function responseInterceptor (response) {
     if (response.end != true) {
@@ -41,7 +48,7 @@ function requestInterceptor (request) {
     }'
     :responseInterceptor='responseInterceptor'
     :requestInterceptor='requestInterceptor'
-    stream="true"
+    stream='{"simulation": 6}'
     style="
     width: 100%;
     border: 0px;
@@ -54,7 +61,7 @@ function requestInterceptor (request) {
         "container": {
           "borderRadius": "0.7rem",
           "border": "unset",
-          "width": "60%",
+          "width": "80%",
           "textAlign": "center",
           "boxShadow": "0px 0.3px 0.9px rgba(0, 0, 0, 0.12), 0px 1.6px 3.6px rgba(0, 0, 0, 0.16)",
         },
@@ -66,27 +73,28 @@ function requestInterceptor (request) {
          }
       },
       "placeholder": { "text": "Ask me anything...", "style": { "color": "#606060" } }
-    }' :messageStyles='{
+    }'
+  :messageStyles='{
   "default": {
     "loading": {
       "bubble": { "backgroundColor": "#3793ff", "fontSize": "20px", "color": "white" }
     },
     "shared": {
+      "innerContainer": {"width": "auto"},
       "bubble": {
         "backgroundColor": "unset",
-        "marginTop": "10px",
-        "marginBottom": "10px",
-        "max-width": "50%",
-        "boxShadow": "0px 0.3px 0.9px rgba(0, 0, 0, 0.12), 0px 1.6px 3.6px rgba(0, 0, 0, 0.16)"
+        "max-width": "70%",
+        "boxShadow": "0px 0.3px 0.9px rgba(0, 0, 0, 0.12), 0px 1.6px 3.6px rgba(0, 0, 0, 0.16)",
+        "color" : "#4b4b4b"
       }
     },
     "user": {
       "bubble": {
-        "background": "linear-gradient(130deg, #2870EA 20%, #1B4AEF 77.5%)",
-        "marginRight": "20%",
+        "background": "#ffffff",
+        "marginRight": "10%",
       }
     },
-    "ai": { "bubble": { "background": "rgba(255,255,255,0.7) ", "marginLeft": "20%" } }
+    "ai": { "bubble": { "background": "#ffffff", "marginLeft": "10%" } }
   }
 }' :submitButtonStyles='{
   "position": "inside-right",
@@ -127,8 +135,7 @@ function requestInterceptor (request) {
       }
     }
   }
-}' :initialMessages='messages' >
-</deep-chat>
+}' :initialMessages='messages' />
 </template>
 
 <style scoped lang="scss">

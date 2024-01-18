@@ -15,13 +15,10 @@ const messages = ref([
 
 <style scoped lang="scss">
 .q-page {
-  height: 100%;
-  width: 100%;
   display: flex;
   flex-direction: column;
   //对齐底部
   justify-content: center;
-  padding-bottom: 5%;
 }
 </style>
 

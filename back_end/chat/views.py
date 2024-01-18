@@ -14,9 +14,8 @@ class ChatSseView(View):
         print(f'message: {message}')
         def event_stream():
             for chunk in self.zhipuLLM.stream(message):
-                end = True if chunk == '' else False 
-                print(f'end: {end}, chunk: {chunk}')
-                yield f'data: {json.dumps({"message" : chunk, "end": end})}\n\n'
+                yield f'data: {json.dumps({"message" : chunk, "end": False})}\n\n'
+            yield f'data: {json.dumps({"message" : "", "end": True})}\n\n'
         return StreamingHttpResponse(event_stream(), content_type='text/event-stream')
 
 class ChatView(View):

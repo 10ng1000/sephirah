@@ -2,12 +2,15 @@
 <script setup>
 import {ref} from 'vue';
 import {toast} from "vue-sonner";
-import { onMounted, nextTick} from 'vue';
+import { onMounted} from 'vue';
 import { Marked } from "marked";
 import { markedHighlight } from "marked-highlight";
 import hljs from 'highlight.js';
+import 'highlight.js/styles/github.css';
+//'github-markdown-css';
+import 'github-markdown-css/github-markdown.css';
 import { computed } from 'vue';
-import { onUnmounted } from 'vue';
+import { watch } from 'vue';
 //导入quasar项目的app
 const marked = new Marked(
   markedHighlight({
@@ -18,7 +21,6 @@ const marked = new Marked(
     }
   })
 );
-const message = ref(null);
 const html = ref(null);
 const thumb_up = ref('thumb_up_off_alt');
 const thumb_down = ref('thumb_down_off_alt');
@@ -26,14 +28,19 @@ const isThumbUpJumping = ref(false);
 const isThumbDownJumping = ref(false);
 const props = defineProps({
   text: String,
-  end: String
+  end: Boolean,
+  role: String
 });
-const booleanEnd = computed(() => {
-  return props.end === 'true';
+const isUser = computed(() => {
+  return props.role === 'user';
 });
 onMounted(() => {
+  if (props.text !== null){
+    html.value = marked.parse(props.text);
+  }
+});
+watch(() => props.text, () => {
   html.value = marked.parse(props.text);
-  message.value.scrollTo(0, message.value.scrollHeight);
 });
 function copyText() {
   navigator.clipboard.writeText(props.text);
@@ -66,12 +73,9 @@ function changeThumbDown(){
 </script>
 
 <template>
-  <body ref="message">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
-        rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
-  <div v-html="html"></div>
-  <div v-if="booleanEnd">
+  <main :class="{userMessage: isUser, aiMessage: !isUser}">
+  <div v-html="html" class="markdown-body"></div>
+  <div v-if="end">
   <hr/>
   <div class="buttons">
     <button :class="['material-icons',{'is-jumping': isThumbUpJumping}]" @click="changeThumbUp">{{thumb_up}}</button>
@@ -79,25 +83,38 @@ function changeThumbDown(){
     <button class="material-icons copy-btn" @click="copyText">content_copy</button>
   </div>
   </div>
-</body>
+  </main>
 </template>
 
-<style scoped>
-body {
-  font-size : 1rem;
-  overflow: auto;
+<style scoped lang="scss">
+main{
+  padding: 1rem;
+  width: fit-content;
+  max-width: 60%;
+  border-radius: 0.5rem;
+  box-shadow: 0px 0.3px 0.9px rgba(0, 0, 0, 0.12), 0px 1.6px 3.6px rgba(0, 0, 0, 0.16);
+  margin-bottom: 2rem;
 }
 button {
+  font-size: 1.5rem;
   background-color: transparent;
   border: none;
-  color: #1cb0f6;
+  color: $component;
   cursor: pointer;
   outline: none;
 }
 hr {
   border: 0;
   height: 0.1rem;
-  background: #1cb0f6;
+  background: $component;
+}
+.userMessage {
+  margin-right: 20%;
+  margin-left: auto;
+}
+.aiMessage {
+  margin-left: 20%;
+  margin-right: auto;
 }
 .buttons {
   display: flex;
@@ -122,3 +139,4 @@ hr {
   }
 }
 </style>
+

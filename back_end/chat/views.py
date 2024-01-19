@@ -11,7 +11,7 @@ class ChatSseView(View):
     def post(self, request):
         data = json.loads(request.body)
         message = data.get('message')
-        print(f'message: {message}')
+        #print(f'message: {message}')
         def event_stream():
             for chunk in self.zhipuLLM.stream(message):
                 yield f'data: {json.dumps({"message" : chunk, "end": False})}\n\n'

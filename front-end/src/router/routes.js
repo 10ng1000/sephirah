@@ -12,7 +12,7 @@ const routes = [
   {
     path: "/graph",
     component: () => import("layouts/MainLayout.vue"),
-    children: [{ path: "", component: () => import("pages/ChatPage.vue") }],
+    children: [{ path: "", component: () => import("pages/GraphPage.vue") }],
   },
   {
     path: "/knowledge",

@@ -4,18 +4,25 @@ import 'deep-chat';
 import HtmlMessage from './HtmlMessage.ce.vue';
 import { Toaster} from 'vue-sonner';
 import { onMounted } from 'vue';
+import { nextTick } from 'vue';
 
-const htmlMessage = ref(null);
-
+const chat = ref(null);
 onMounted(() => {
   //注册自定义组件
   const HtmlMessageElement = defineCustomElement(HtmlMessage);
   customElements.define('html-message', HtmlMessageElement);
+  nextTick(() => {
+    chat.value.addEventListener('new-message', (e) => {
+      console.log(e.detail);
+      chat.value.scrollToBottom()
+    });
+  });
+
 })
 
 //欢迎信息
 const messages = ref([
-  { "role": "ai" , "html": "<html-message text='你好，我是sephirah，请问有什么我可以帮忙的吗？'></html-message>"}
+  { "role": "ai" , "html": '<html-message text="你好，我是sephirah，请问有什么我可以帮忙的吗？" end="true"></html-message>'}
 ])
 
 //自定义的response拦截器，用于将后端返回的数据转换为deepchat需要的格式，往下的request拦截器同理
@@ -23,10 +30,16 @@ const now_message = ref('')
 function responseInterceptor (response) {
     if (response.end != true) {
       now_message.value += response.message
-      return {html: `<html-message text='${now_message.value}'></html-message>`, overwrite: true}
+      //chat.value.scrollToBottom()
+      //等待0.01秒，让deepchat的scrollToBottom生效
+      setTimeout(() => {
+        chat.value.scrollToBottom()
+      }, 1);
+      return {html: `<html-message text='${now_message.value}' end='false'></html-message>`, overwrite: true}
+      //return {text: `${response.message}`}
     }
     else {
-      const ret = {html: `<html-message text='${now_message.value}'></html-message>`, overwrite: true}
+      const ret = {html: `<html-message text='${now_message.value}' end='true'></html-message>`, overwrite: true}
       now_message.value = ''
       return ret
     }
@@ -41,6 +54,7 @@ function requestInterceptor (request) {
 <template>
   <Toaster />
   <deep-chat
+    ref="chat"
     :request='{
       "url": "http://localhost:8000/chat/sse_invoke",
       "method": "POST",
@@ -48,7 +62,7 @@ function requestInterceptor (request) {
     }'
     :responseInterceptor='responseInterceptor'
     :requestInterceptor='requestInterceptor'
-    stream='{"simulation": 6}'
+    stream= true
     style="
     width: 100%;
     border: 0px;

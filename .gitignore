@@ -5,3 +5,4 @@ back_end/data/*
 back_end/test.py
 #所有__pycache__文件夹
 **/__pycache__/*
+legacy-front-end/*

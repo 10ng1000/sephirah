@@ -52,9 +52,10 @@ class ZhipuLLM(LLM):
     ) -> str:
         if stop is not None:  
             raise ValueError("stop kwargs are not permitted.")  
+        print(prompt)
         response = client.chat.completions.create( 
             model=self.model,  
-            messages=[{"role": "user", "content": prompt}],  
+            messages=[{"role": "user", "content": prompt}],
         )
         content = response.choices[0].message.content
         r1 = re.sub(r'\\"', '"',content)

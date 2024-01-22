@@ -18,8 +18,17 @@ services:
       target: 'python-develop-stage'
     command: /bin/sh -c "pip3 install -q --no-cache-dir -r requirements.txt && celery -A mysite worker -l info"
     restart: always
+    network_mode: host
     volumes:
       - .:/app
+    depends_on:
+      - redis
+  
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    restart: always
 
 volumes:
   extraction_volume:

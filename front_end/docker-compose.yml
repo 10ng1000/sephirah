@@ -1,0 +1,14 @@
+# for local development
+version: '3.7'
+services:
+  quasar:
+    build:
+      context: .
+      target: 'develop-stage'
+    ports:
+    - '9000:9000'
+    volumes:
+    - '.:/app'
+    command: /bin/sh -c "yarn && yarn vite --host --port 9000"
+    extra_hosts:
+      - host.docker.internal:host-gateway

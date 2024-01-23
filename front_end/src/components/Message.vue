@@ -1,8 +1,8 @@
 <!-- 自定义用于显示弹出的message的webcomponent组件，以适配deepchat -->
 <script setup>
-import {ref} from 'vue';
-import {toast} from "vue-sonner";
-import { onMounted} from 'vue';
+import { ref } from 'vue';
+import { toast } from "vue-sonner";
+import { onMounted } from 'vue';
 import { Marked } from "marked";
 import { markedHighlight } from "marked-highlight";
 import hljs from 'highlight.js';
@@ -26,27 +26,43 @@ const thumb_up = ref('thumb_up_off_alt');
 const thumb_down = ref('thumb_down_off_alt');
 const isThumbUpJumping = ref(false);
 const isThumbDownJumping = ref(false);
+const isScrolling = ref(false);
+
 const props = defineProps({
   text: String,
   end: Boolean,
-  role: String
+  role: String,
+  remain: Number,
+  total: Number
 });
 const isUser = computed(() => {
   return props.role === 'user';
 });
 onMounted(() => {
-  if (props.text !== null){
+  if (props.text !== null) {
     html.value = marked.parse(props.text);
   }
+  window.addEventListener('scroll', function (event) {
+    isScrolling.value = true;
+  }, true);
 });
 watch(() => props.text, () => {
   html.value = marked.parse(props.text);
+  //视图更新后，滚动到底部，但是两次滚动之间要有间隔，滚动动画要平滑,如果用户滚动了，就不要滚动到底部了
+  if (!isScrolling.value) {
+    setTimeout(() => {
+      window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: 'smooth'
+      });
+    }, 100);
+  }
 });
 function copyText() {
   navigator.clipboard.writeText(props.text);
   toast('已成功复制到剪贴板');
 }
-function changeThumbUp(){
+function changeThumbUp() {
   if (thumb_up.value === 'thumb_up_off_alt') {
     thumb_up.value = 'thumb_up';
     thumb_down.value = 'thumb_down_off_alt';
@@ -58,7 +74,7 @@ function changeThumbUp(){
     thumb_up.value = 'thumb_up_off_alt';
   }
 }
-function changeThumbDown(){
+function changeThumbDown() {
   if (thumb_down.value === 'thumb_down_off_alt') {
     thumb_down.value = 'thumb_down';
     thumb_up.value = 'thumb_up_off_alt';
@@ -70,31 +86,37 @@ function changeThumbDown(){
     thumb_down.value = 'thumb_down_off_alt';
   }
 }
+
 </script>
 
 <template>
-  <main :class="{userMessage: isUser, aiMessage: !isUser}">
-  <div v-html="html" class="markdown-body"></div>
-  <div v-if="end">
-  <hr/>
-  <div class="buttons">
-    <button :class="['material-icons',{'is-jumping': isThumbUpJumping}]" @click="changeThumbUp">{{thumb_up}}</button>
-    <button :class="['material-icons',{'is-jumping': isThumbDownJumping}]" @click="changeThumbDown">{{ thumb_down }}</button>
-    <button class="material-icons copy-btn" @click="copyText">content_copy</button>
-  </div>
-  </div>
+  <main :class="{ userMessage: isUser, aiMessage: !isUser }">
+    <div v-html="html" class="markdown-body"></div>
+    <div v-if="!isUser">
+      <hr />
+      <buttons>
+        <button :class="['material-icons', { 'is-jumping': isThumbUpJumping }]" @click="changeThumbUp">{{ thumb_up }}</button>
+        <button :class="['material-icons', { 'is-jumping': isThumbDownJumping }]" @click="changeThumbDown">{{ thumb_down
+        }}</button>
+        <remain-text v-if="end">
+          {{ remain }}/{{ total }}
+        </remain-text>
+        <button :class="['material-icons', {'copy-btn': !end}]" @click="copyText">content_copy</button>
+      </buttons>
+    </div>
   </main>
 </template>
 
 <style scoped lang="scss">
-main{
-  padding: 1rem;
-  width: fit-content;
-  max-width: 60%;
+main {
+  margin-top: 2rem;
+  //box-shadow: 0px 0.3px 0.9px rgba(0, 0, 0, 0.12), 0px 1.6px 3.6px rgba(0, 0, 0, 0.16);
+  border: 2px solid $border;
   border-radius: 0.5rem;
-  box-shadow: 0px 0.3px 0.9px rgba(0, 0, 0, 0.12), 0px 1.6px 3.6px rgba(0, 0, 0, 0.16);
-  margin-bottom: 2rem;
+  max-width: 90%;
+  padding: 1rem;
 }
+
 button {
   font-size: 1.5rem;
   background-color: transparent;
@@ -103,40 +125,55 @@ button {
   cursor: pointer;
   outline: none;
 }
+
 hr {
   border: 0;
   height: 0.1rem;
   background: $component;
 }
+
+remain-text {
+  margin-left: auto;
+  margin-right: 2rem;
+  line-height: 1.5rem;
+  font-size: 1.2rem;
+  align-self:flex-end;
+}
+
+.copy-btn {
+  margin-left: auto;
+}
 .userMessage {
   margin-right: 5%;
   margin-left: auto;
 }
+
 .aiMessage {
   margin-left: 5%;
   margin-right: auto;
 }
-.buttons {
+
+buttons {
   display: flex;
-  justify-content:flex-end;
+  justify-content: flex-start;
   margin-top: 0.5rem;
 }
+
 .is-jumping {
   animation: jumpAnimation 0.3s;
 }
-.copy-btn {
-  margin-left: auto;
-}
+
 @keyframes jumpAnimation {
   0% {
     transform: translateY(0) scale(1);
   }
+
   50% {
     transform: translateY(-0.3rem) scale(1.1);
   }
+
   100% {
     transform: translateY(0) scale(1);
   }
-}
-</style>
+}</style>
 

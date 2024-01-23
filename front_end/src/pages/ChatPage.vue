@@ -12,7 +12,8 @@ const messages = ref([
   { "role": "ai" , "text": '你好，我是sephirah，请问有什么我可以帮忙的吗？'}
 ])
 const inputText = ref('')
-//axois客户端，发送SSE请求到服务器
+const sessionID = ref('')
+
 
 onMounted(() => {
   autosize(document.querySelectorAll('textarea'));
@@ -26,13 +27,26 @@ async function sendMessage(e) {
   const sendText = inputText.value
   const newMessage = {"role": "ai", "text": ' '}
   messages.value.push(newMessage)
-  //获得最新消息的引用
   const lastMessage = messages.value[messages.value.length - 1]
   inputText.value = ''
+  //请求服务器的会话
+  if (sessionID.value === '') {
+    //post调用
+    const response = await fetch('http://localhost:8000/api/chat/sessions', {
+      method: 'POST',
+      body: JSON.stringify({
+        "message": sendText
+      })
+    })
+    const data = await response.json()
+    sessionID.value = data.session_id
+    console.log(sessionID.value)
+  }
   await fetchEventSource ('http://localhost:8000/api/chat/sse_invoke', {
     method: 'POST',
     body: JSON.stringify({
-      "message": sendText
+      "message": sendText,
+      "session_id": sessionID.value
     }),
     onmessage(event) {
       //解析服务器返回的json数据

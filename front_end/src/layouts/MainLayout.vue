@@ -68,4 +68,7 @@ const toggleLeftDrawer = () => {
   font-weight: bold;
   justify-content: center;
 }
+.main-logo:hover {
+  background-color: transparent;
+}
 </style>

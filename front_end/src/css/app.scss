@@ -41,6 +41,7 @@ body {
 
 .q-item, a{
   border-radius: $border-radius-small;
+  color: $text-color;
 }
 
 .q-item:hover, a:hover{

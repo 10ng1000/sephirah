@@ -109,7 +109,6 @@ a {
     width: 100%;
     text-decoration: none;
     //不显示超链接的颜色
-    color: inherit;
 }
 
 name {

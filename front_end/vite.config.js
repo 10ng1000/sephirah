@@ -17,8 +17,8 @@ export default defineConfig({
       sassVariables: 'src/css/quasar-variables.sass'
     })
   ],
-  server: {
-    host: "0.0.0.0",
-    port: 80
-  }
+    server: {
+      host: '0.0.0.0',
+      port: 80,
+    }
 })

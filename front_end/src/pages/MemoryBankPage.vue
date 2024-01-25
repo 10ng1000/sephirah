@@ -28,7 +28,7 @@ const groups = computed(() => {
 })
 
 const fetchSessions = async () => {
-    fetch(import.meta.env.VITE_BACKEND_URL + '/api/chat/sessions')
+    fetch(import.meta.env.VITE_BACKEND_URL + '/api/chat/sessions?isAllSessions=true')
         .then(response => response.json())
         .then(data => {
             sessions.value = data

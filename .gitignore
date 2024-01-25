@@ -1,8 +1,7 @@
 .history
 .vscode
+**/__pycache__/
+back_end/redis_data/*
 back_end/data/*
 !back_end/data/README.md
 back_end/test.py
-#所有__pycache__文件夹
-**/__pycache__/*
-legacy-front-end/*

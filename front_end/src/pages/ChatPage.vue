@@ -92,7 +92,7 @@ onMounted(() => {
   if (route.params.session_id) {
     sessionId.value = route.params.session_id
     //加载历史消息
-    fetch(`http://localhost:8000/api/chat/sessions?session_id=${sessionId.value}`)
+    fetch(import.meta.env.VITE_BACKEND_URL + `/api/chat/sessions?session_id=${sessionId.value}`)
       .then(response => response.json())
       .then(data => {
         messages.value = [welcomeMessage]

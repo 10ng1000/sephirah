@@ -5,5 +5,5 @@ zhipuai
 icecream
 pretty-errors
 langchain
-chromadb
+faiss-cpu
 django-cors-headers

@@ -28,7 +28,7 @@ const groups = computed(() => {
 })
 
 const fetchSessions = async () => {
-    fetch('http://localhost:8000/api/chat/sessions')
+    fetch('http://localhost:8000/api/chat/sessions?isAllSessions=true')
         .then(response => response.json())
         .then(data => {
             sessions.value = data
@@ -109,7 +109,6 @@ a {
     width: 100%;
     text-decoration: none;
     //不显示超链接的颜色
-    color: inherit;
 }
 
 name {

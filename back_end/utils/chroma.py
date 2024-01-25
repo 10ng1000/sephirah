@@ -1,7 +1,7 @@
 from langchain_community.document_loaders import TextLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.vectorstores import FAISS
-from zhipu_llm import ZhipuEmbedding
+from utils.zhipu_llm import ZhipuEmbedding
 from icecream import ic
 
 # raw_doc = TextLoader('../data/降膜机组调试要点说明书v5.0_V2.txt').load()

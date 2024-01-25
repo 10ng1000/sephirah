@@ -4,6 +4,7 @@ from django.http import HttpResponse, HttpResponseNotFound, HttpResponseBadReque
 from django.http import StreamingHttpResponse
 from utils.zhipu_llm import ZhipuLLMWithMemory
 from chat.models import ChatSession
+from utils.memory import RedisMemory
 import json
 
 # Create your views here.
@@ -44,10 +45,26 @@ class ChatSessionView(View):
     
     def get(self, request):
         # 获取所有大模型对话session，按时间顺序排序
-        sessions = ChatSession.objects.all().order_by('-start_time')
-        return HttpResponse(json.dumps(
-            [{'session_id': session.session_id, 'name': session.name,'start_time': str(session.start_time)} for session in sessions]
-        ))
+        # 如果获得所有
+        isAllSessions = request.GET.get('isAllSessions')
+        if isAllSessions:
+            sessions = ChatSession.objects.all().order_by('-start_time')
+            return HttpResponse(json.dumps(
+                [{'session_id': session.session_id, 'name': session.name,'start_time': str(session.start_time)} for session in sessions]
+            ))
+        else:
+            session_id = request.GET.get('session_id')
+            if not session_id:
+                return HttpResponseBadRequest("session_id is required")
+            try:
+                session = ChatSession.objects.get(session_id=session_id)
+                #获得redis中session对应的聊天记录
+                memory = RedisMemory(session_id=session_id)
+                history = memory.get_history()
+                return HttpResponse(json.dumps({'session_id': session.session_id, 'name': session.name, 'start_time': str(session.start_time), 'history': history}))
+            except:
+                return HttpResponseNotFound("session not found")
+
 
     def delete(self, request):
         # 删除所有大模型对话session

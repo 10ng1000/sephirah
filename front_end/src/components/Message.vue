@@ -29,7 +29,7 @@ const isThumbDownJumping = ref(false);
 const isScrolling = ref(false);
 
 const props = defineProps({
-  text: String,
+  content: String,
   end: Boolean,
   role: String,
   remain: Number,
@@ -39,15 +39,15 @@ const isUser = computed(() => {
   return props.role === 'user';
 });
 onMounted(() => {
-  if (props.text !== null) {
-    html.value = marked.parse(props.text);
+  if (props.content !== null) {
+    html.value = marked.parse(props.content);
   }
   window.addEventListener('scroll', function (event) {
     isScrolling.value = true;
   }, true);
 });
-watch(() => props.text, () => {
-  html.value = marked.parse(props.text);
+watch(() => props.content, () => {
+  html.value = marked.parse(props.content);
   //视图更新后，滚动到底部，但是两次滚动之间要有间隔，滚动动画要平滑,如果用户滚动了，就不要滚动到底部了
   if (!isScrolling.value) {
     setTimeout(() => {
@@ -59,7 +59,7 @@ watch(() => props.text, () => {
   }
 });
 function copyText() {
-  navigator.clipboard.writeText(props.text);
+  navigator.clipboard.writeText(props.content);
   toast('已成功复制到剪贴板');
 }
 function changeThumbUp() {
@@ -99,6 +99,7 @@ function changeThumbDown() {
         <button :class="['material-icons', { 'is-jumping': isThumbDownJumping }]" @click="changeThumbDown">{{ thumb_down
         }}</button>
         <remain-text v-if="end">
+          <!-- todo 增加进度条 -->
           {{ remain }}/{{ total }}
         </remain-text>
         <button :class="['material-icons', {'copy-btn': !end}]" @click="copyText">content_copy</button>

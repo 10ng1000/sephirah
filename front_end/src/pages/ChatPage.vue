@@ -1,15 +1,14 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import Message from '../components/Message.vue';
 import { Toaster, toast} from 'vue-sonner';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import autosize from 'autosize';
 import { onMounted } from 'vue';
-import {useFloating, offset} from '@floating-ui/vue';
+import {useFloating, offset, computePosition} from '@floating-ui/vue';
 
-const welcomeMessage = { "role": "ai", "text": '你好，我是sephirah，请问有什么我可以帮忙的吗？', "end": false}
-const route = useRoute()
+const welcomeMessage = { "role": "system", "content": '你好，我是sephirah，请问有什么我可以帮忙的吗？', "end": false}
 const router = useRouter()
 const maxChat = 10
 
@@ -17,7 +16,6 @@ const messages = ref([welcomeMessage])
 const inputText = ref('')
 //sessionId从路由获取
 const sessionId = ref('')
-const remainChat = ref(1)
 
 //展示tooltip
 const showTooltip = ref(false)
@@ -26,6 +24,12 @@ const tooltip = ref(null)
 const { floatingStyles } = useFloating(restart, tooltip, {
   placement: 'top',
   middleware: [offset(10)]
+})
+
+const remainChat = computed(() => {
+  //计算所有role为assistant的message数量
+  const assistantMessages = messages.value.filter(message => message.role === 'user')
+  return maxChat - assistantMessages.length
 })
 
 //当剩余次数为0时，弹出提示
@@ -43,15 +47,14 @@ async function sendMessage(e) {
   if (e) {
     e.preventDefault()
   }
-  messages.value.push({ "role": "user", "text": inputText.value })
+  messages.value.push({ "role": "user", "content": inputText.value })
   const sendText = inputText.value
-  const newMessage = { "role": "ai", "text": ' ' }
+  const newMessage = { "role": "assistant", "content": ' ' }
   messages.value.push(newMessage)
   const lastMessage = messages.value[messages.value.length - 1]
   inputText.value = ''
   //请求服务器的会话
   if (sessionId.value === '') {
-    //post调用
     const response = await fetch('http://localhost:8000/api/chat/sessions', {
       method: 'POST',
       body: JSON.stringify({
@@ -69,28 +72,35 @@ async function sendMessage(e) {
       "session_id": sessionId.value
     }),
     onmessage(event) {
-      //解析服务器返回的json数据
       const data = JSON.parse(event.data)
-      lastMessage.text += data.message
-      //如果是最后一条消息，就把end设置为true
+      lastMessage.content += data.message
       lastMessage.end = data.end
     }
   })
-  //剩余聊天次数减少
-  remainChat.value -= 1
 }
 function reset() {
   messages.value = [welcomeMessage]
   inputText.value = ''
   sessionId.value = ''
-  remainChat.value = 1
   router.replace({path: "/chat"})
 }
 
 onMounted(() => {
   autosize(document.querySelectorAll('textarea'));
-  if (route.params.sessionId) {
-    sessionId.value = route.params.sessionId
+  const route = useRoute()
+  if (route.params.session_id) {
+    sessionId.value = route.params.session_id
+    //加载历史消息
+    fetch(`http://localhost:8000/api/chat/sessions?session_id=${sessionId.value}`)
+      .then(response => response.json())
+      .then(data => {
+        messages.value = [welcomeMessage]
+        for (const message of data.history) {
+          //加上end标记
+          message.end = true
+          messages.value.push(message)
+        }
+      })
   }
 })
 
@@ -100,7 +110,7 @@ onMounted(() => {
   <q-page>
     <Toaster position="top-center" />
     <message-container>
-      <Message v-for="message in messages" :text="message.text" :end="message.end" :role="message.role" :remain="remainChat" :total="maxChat" />
+      <Message v-for="message in messages" :content="message.content" :end="message.end" :role="message.role" :remain="remainChat" :total="maxChat" />
     </message-container>
     <footer>
       <input-container>

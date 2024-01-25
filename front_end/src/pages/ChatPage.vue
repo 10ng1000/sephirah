@@ -52,7 +52,7 @@ async function sendMessage(e) {
   //请求服务器的会话
   if (sessionId.value === '') {
     //post调用
-    const response = await fetch('http://localhost:8000/api/chat/sessions', {
+    const response = await fetch(import.meta.env.VITE_BACKEND_URL + '/api/chat/sessions', {
       method: 'POST',
       body: JSON.stringify({
         "message": sendText
@@ -62,7 +62,7 @@ async function sendMessage(e) {
     sessionId.value = data.session_id
     router.replace({path: `/chat/${sessionId.value}`})
   }
-  await fetchEventSource('http://localhost:8000/api/chat/sse_invoke', {
+  await fetchEventSource(import.meta.env.VITE_BACKEND_URL + '/api/chat/sse_invoke', {
     method: 'POST',
     body: JSON.stringify({
       "message": sendText,

@@ -28,14 +28,14 @@ const groups = computed(() => {
 })
 
 const fetchSessions = async () => {
-    fetch('http://localhost:8000/api/chat/sessions')
+    fetch(import.meta.env.VITE_BACKEND_URL + '/api/chat/sessions')
         .then(response => response.json())
         .then(data => {
             sessions.value = data
         })
 }
 const deleteSessions = async () => {
-    fetch('http://localhost:8000/api/chat/sessions', {
+    fetch(import.meta.env.VITE_BACKEND_URL + '/api/chat/sessions', {
         method: 'DELETE'
     })
         .then(response => response.json())

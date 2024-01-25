@@ -7,7 +7,7 @@ from langchain.embeddings.base import Embeddings
 from typing import Optional, List, Any, Mapping, Iterator, Callable, Dict
 from langchain_community.chat_message_histories import RedisChatMessageHistory, SQLChatMessageHistory
 from langchain_core.messages import ChatMessage
-from memory import RedisMemory
+from utils.memory import RedisMemory
 import re
 #import pretty_errors
 

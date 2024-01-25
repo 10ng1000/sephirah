@@ -12,12 +12,6 @@ const drawerLinks = ref([
     color: 'orange'
   },
   {
-    title: '新的记忆',
-    icon: 'add_box',
-    to: '/',
-    color: 'pink'
-  },
-  {
     title: '记忆库',
     icon: 'memory',
     to: '/memory',

@@ -110,9 +110,8 @@ function changeThumbDown() {
 <style scoped lang="scss">
 main {
   margin-top: 2rem;
-  //box-shadow: 0px 0.3px 0.9px rgba(0, 0, 0, 0.12), 0px 1.6px 3.6px rgba(0, 0, 0, 0.16);
-  border: 2px solid $border;
-  border-radius: 0.5rem;
+  border: $border;
+  border-radius: $border-radius;
   max-width: 90%;
   padding: 1rem;
 }

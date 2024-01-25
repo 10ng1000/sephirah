@@ -26,4 +26,24 @@
 body {
   // font-family: "Alice";
   color: #4b4b4b;
+  // 在index.html中设置
+  font-size: 1rem;
+}
+
+.tooltip {
+  border: $border;
+  border-radius: $border-radius-small;
+  padding: 0.5rem;
+  font-family: "Dosis";
+  font-weight: 400;
+  color: #4b4b4b;
+}
+
+.q-item, a{
+  border-radius: $border-radius-small;
+}
+
+.q-item:hover, a:hover{
+  background-color: $hover-color;
+  color: $text-jump-color;
 }

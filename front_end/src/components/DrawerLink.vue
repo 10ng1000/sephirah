@@ -40,15 +40,11 @@ const props = defineProps({
 .sephirah-drawer-item {
   font-size: 1rem;
   height: 40px;
-}
-
-.sephirah-drawer-item:hover {
-  border-radius: 12px;
+  border-radius: $border-radius;
 }
 
 .sephirah-drawer-item--active {
   border: 2px solid #84d8ff;
-  border-radius: 12px;
   background-color: #ddf4ff;
 }
 </style>

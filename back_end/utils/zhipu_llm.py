@@ -5,8 +5,9 @@ from langchain.callbacks.manager import CallbackManagerForLLMRun
 from langchain.schema.output import GenerationChunk
 from langchain.embeddings.base import Embeddings
 from typing import Optional, List, Any, Mapping, Iterator, Callable, Dict
-from langchain_community.chat_message_histories import RedisChatMessageHistory
+from langchain_community.chat_message_histories import RedisChatMessageHistory, SQLChatMessageHistory
 from langchain_core.messages import ChatMessage
+from memory import RedisMemory
 import re
 #import pretty_errors
 
@@ -70,13 +71,15 @@ class ZhipuLLM(LLM):
 class ZhipuLLMWithMemory(ZhipuLLM):
     '''带记忆功能的LLM，redis数据库存储记忆'''
     session_id: str = "default"
-    history: RedisChatMessageHistory = None
+    # history: RedisChatMessageHistory = None
+    memory: RedisMemory = None
 
     def __init__(self, session_id: str):
         super().__init__()
         self.session_id = session_id
         #todo 以后改成环境变量
-        self.history = RedisChatMessageHistory(session_id, url="redis://localhost:6379")
+        # self.history = RedisChatMessageHistory(session_id, url="redis://localhost:6379")
+        self.memory = RedisMemory(session_id)
 
     def _stream(
         self,
@@ -85,8 +88,9 @@ class ZhipuLLMWithMemory(ZhipuLLM):
         run_manager: Optional[CallbackManagerForLLMRun] = None,
         **kwargs: Any,
     ) -> Iterator[GenerationChunk]:
-        history = [{"role": msg.role, "content": msg.content} for msg in self.history.messages]
-        ic(history + [{"role": "user", "content": prompt}])
+        # history = [{"role": msg.role, "content": msg.content} for msg in self.history.messages]
+        # ic(history + [{"role": "user", "content": prompt}])
+        history = self.memory.get_history()
         response = client.chat.completions.create(
             model=self.model,
             messages=history + [{"role": "user", "content": prompt}],
@@ -95,8 +99,10 @@ class ZhipuLLMWithMemory(ZhipuLLM):
         content = ""
         for chunk in response:
             if chunk.choices[0].finish_reason == "stop":
-                self.history.add_message(ChatMessage(role="user", content=prompt))
-                self.history.add_message(ChatMessage(role="assistant", content=content))
+                # self.history.add_message(ChatMessage(role="user", content=prompt))
+                # self.history.add_message(ChatMessage(role="assistant", content=content))
+                self.memory.add_message(role="user", content=prompt)
+                self.memory.add_message(role="assistant", content=content)
                 yield GenerationChunk(
                     text=''
                 )
@@ -116,15 +122,17 @@ class ZhipuLLMWithMemory(ZhipuLLM):
     ) -> str:
         if stop is not None:
             raise ValueError("stop kwargs are not permitted.")
-        history = [{"role": msg.role, "content": msg.content} for msg in self.history.messages]
+        # history = [{"role": msg.role, "content": msg.content} for msg in self.history.messages]
         #ic(history + [{"role": "user", "content": prompt}])
+        history = self.memory.get_history()
         response = client.chat.completions.create(
             model=self.model,
             messages=history + [{"role": "user", "content": prompt}],
         )
         content = response.choices[0].message.content
-        self.history.add_message(ChatMessage(role="user", content=prompt))
-        self.history.add_message(ChatMessage(role="assistant", content=content))
+        # self.history.add_message(ChatMessage(role="user", content=prompt))
+        # self.history.add_message(ChatMessage(role="assistant", content=content))
+        self.memory.add_message(role="user", content=prompt)
         return content
 
     @property
@@ -132,32 +140,21 @@ class ZhipuLLMWithMemory(ZhipuLLM):
         """Get the identifying parameters."""
         return {"model": self.model}
 
-# class ZhipuEmbedding(Embeddings):
-#     model: str = 'text_embedding'
+class ZhipuEmbedding(Embeddings):
+    model: str = 'embedding-2'
 
-#     def embed_documents(self, texts: List[str]) -> List[List[float]]:
-#         texts = list(map(lambda x: x.replace("\n", " "), texts))
-#         embeddings = []
-#         for text in texts:
-#             response = zhipuai.model_api.invoke(model=self.model, prompt=text)
-#             if response['code'] != HTTPStatus.OK:  
-#                 raise RuntimeError(  
-#                     f"Zhipu API returned an error: {response['code']} {response['msg']}"  
-#                 )
-#             embeddings.append(response['data']['embedding'])
-#         if not isinstance(embeddings, list):
-#             return embeddings.tolist()
-#         return embeddings
+    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+        texts = list(map(lambda x: x.replace("\n", " "), texts))
+        embeddings = []
+        for text in texts:
+            response = client.embeddings.create(model=self.model, input=text)
+            embeddings.append(response.data[0].embedding)
+        return embeddings
     
-#     def embed_query(self, text: str) -> List[float]:
-#         text = text.replace("\n", " ")
-#         response = zhipuai.model_api.invoke(model=self.model, prompt=text)
-#         if response['code'] != HTTPStatus.OK:  
-#             raise RuntimeError(  
-#                 f"Zhipu API returned an error: {response['code']} {response['msg']}"  
-#             )
-#         return response['data']['embedding']
-# 测试
+    def embed_query(self, text: str) -> List[float]:
+        text = text.replace("\n", " ")
+        response = client.embeddings.create(model=self.model, input=text)
+        return response.data[0].embedding
 
 
 

@@ -35,13 +35,21 @@ class ChatSessionView(View):
         # 使用时间戳加随机数作为session_id
         import time
         import secrets
+        name = json.loads(request.body).get('message')
         session_id = f'{int(time.time())}-{secrets.token_hex(8)}'
         #把id存入数据库
-        session = ChatSession(session_id=session_id)
+        session = ChatSession(session_id=session_id, name=name)
         session.save()
         return HttpResponse(json.dumps({'session_id': session_id}))
     
     def get(self, request):
-        # 获取所有大模型对话session
-        sessions = ChatSession.objects.all()
-        return HttpResponse(json.dumps({'sessions': [session.session_id for session in sessions]}))
+        # 获取所有大模型对话session，按时间顺序排序
+        sessions = ChatSession.objects.all().order_by('-start_time')
+        return HttpResponse(json.dumps(
+            [{'session_id': session.session_id, 'name': session.name,'start_time': str(session.start_time)} for session in sessions]
+        ))
+
+    def delete(self, request):
+        # 删除所有大模型对话session
+        ChatSession.objects.all().delete()
+        return HttpResponse(json.dumps({'status': 'success'}))

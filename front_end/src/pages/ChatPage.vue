@@ -1,21 +1,31 @@
 <script setup>
-import { nextTick, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
+import {useRoute, useRouter} from 'vue-router';
 import Message from '../components/Message.vue';
 import { Toaster, toast} from 'vue-sonner';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
-//autosize
 import autosize from 'autosize';
 import { onMounted } from 'vue';
+import {useFloating, offset} from '@floating-ui/vue';
 
 const welcomeMessage = { "role": "ai", "text": '你好，我是sephirah，请问有什么我可以帮忙的吗？', "end": false}
+const route = useRoute()
+const router = useRouter()
+const maxChat = 10
+
 const messages = ref([welcomeMessage])
 const inputText = ref('')
-const sessionID = ref('')
+//sessionId从路由获取
+const sessionId = ref('')
 const remainChat = ref(1)
-const maxChat = ref(10)
 
-onMounted(() => {
-  autosize(document.querySelectorAll('textarea'));
+//展示tooltip
+const showTooltip = ref(false)
+const restart = ref(null)
+const tooltip = ref(null)
+const { floatingStyles } = useFloating(restart, tooltip, {
+  placement: 'top',
+  middleware: [offset(10)]
 })
 
 //当剩余次数为0时，弹出提示
@@ -40,7 +50,7 @@ async function sendMessage(e) {
   const lastMessage = messages.value[messages.value.length - 1]
   inputText.value = ''
   //请求服务器的会话
-  if (sessionID.value === '') {
+  if (sessionId.value === '') {
     //post调用
     const response = await fetch('http://localhost:8000/api/chat/sessions', {
       method: 'POST',
@@ -49,14 +59,14 @@ async function sendMessage(e) {
       })
     })
     const data = await response.json()
-    sessionID.value = data.session_id
-    console.log(sessionID.value)
+    sessionId.value = data.session_id
+    router.replace({path: `/chat/${sessionId.value}`})
   }
   await fetchEventSource('http://localhost:8000/api/chat/sse_invoke', {
     method: 'POST',
     body: JSON.stringify({
       "message": sendText,
-      "session_id": sessionID.value
+      "session_id": sessionId.value
     }),
     onmessage(event) {
       //解析服务器返回的json数据
@@ -72,10 +82,17 @@ async function sendMessage(e) {
 function reset() {
   messages.value = [welcomeMessage]
   inputText.value = ''
-  sessionID.value = ''
+  sessionId.value = ''
   remainChat.value = 1
-  maxChat.value = 10
+  router.replace({path: "/chat"})
 }
+
+onMounted(() => {
+  autosize(document.querySelectorAll('textarea'));
+  if (route.params.sessionId) {
+    sessionId.value = route.params.sessionId
+  }
+})
 
 </script>
 
@@ -85,14 +102,15 @@ function reset() {
     <message-container>
       <Message v-for="message in messages" :text="message.text" :end="message.end" :role="message.role" :remain="remainChat" :total="maxChat" />
     </message-container>
-    <input-area>
+    <footer>
       <input-container>
         <textarea autofocus v-model="inputText" type="textarea" @keydown.enter.preventDefault="sendMessage($event) " max-length="4000"
           placeholder="请输入你的问题" />
         <button class="material-icons submit-button" @click="sendMessage">send</button>
       </input-container>
-      <button class="material-icons new-chat" @click="reset">restart_alt</button>
-    </input-area>
+      <button ref="restart" class="material-icons new-chat" @click="reset" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false">restart_alt</button>
+      <div class="tooltip" ref="tooltip" :style="floatingStyles" v-if="showTooltip">开启新记忆</div>
+    </footer>
   </q-page>
 </template>
 
@@ -106,7 +124,7 @@ message-container {
   overflow: auto;
 }
 
-input-area {
+footer {
   width: 100%;
   position: sticky;
   bottom: 0;
@@ -129,25 +147,24 @@ input-container {
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
-  border-radius: 0.5rem;
-  border: 2px solid $border;
+  border-radius: $border-radius;
+  border: $border;
   outline: none;
 }
 
 input-container textarea {
-  font-size: 1rem;
   line-height: 1rem;
   height: 1rem;
   resize: none;
   width: 92%;
   max-width: 92%;
-  border-radius: 0.5rem;
+  border-radius: $border-radius;
   border: none;
   outline: none;
   background-color: transparent;
 }
 
-input-area button {
+footer button {
   margin-left: auto;
   font-size: 1.5rem;
   border: none;
@@ -160,8 +177,8 @@ input-area button {
 .new-chat {
   margin-left: 1rem;
   height: 3rem;
-  border: 2px solid $border;
-  border-radius: 0.5rem;
+  border: $border;
+  border-radius: $border-radius-small;
   color: pink;
   font-size: 2rem;
 }

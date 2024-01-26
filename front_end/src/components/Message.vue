@@ -98,11 +98,11 @@ function changeThumbDown() {
         <button :class="['material-icons', { 'is-jumping': isThumbUpJumping }]" @click="changeThumbUp">{{ thumb_up }}</button>
         <button :class="['material-icons', { 'is-jumping': isThumbDownJumping }]" @click="changeThumbDown">{{ thumb_down
         }}</button>
+        <button :class="['material-icons', {'copy-btn': !end}]" @click="copyText">content_copy</button>
         <remain-text v-if="end">
           <!-- todo 增加进度条 -->
           {{ remain }}/{{ total }}
         </remain-text>
-        <button :class="['material-icons', {'copy-btn': !end}]" @click="copyText">content_copy</button>
       </buttons>
     </div>
   </main>
@@ -111,8 +111,8 @@ function changeThumbDown() {
 <style scoped lang="scss">
 main {
   margin-top: 2rem;
-  border: $border;
-  border-radius: $border-radius;
+  border: var(--border);
+  border-radius: var(--border-radius);
   max-width: 90%;
   padding: 1rem;
 }
@@ -121,7 +121,7 @@ button {
   font-size: 1.5rem;
   background-color: transparent;
   border: none;
-  color: $component;
+  color: var(--component);
   cursor: pointer;
   outline: none;
 }
@@ -129,12 +129,11 @@ button {
 hr {
   border: 0;
   height: 0.1rem;
-  background: $component;
+  background: var(--component);
 }
 
 remain-text {
   margin-left: auto;
-  margin-right: 2rem;
   line-height: 1.5rem;
   font-size: 1.2rem;
   align-self:flex-end;

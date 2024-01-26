@@ -1,4 +1,3 @@
-// app global css in SCSS form
 @font-face {
   font-family: "Alice";
   src: url("https://fonts.gstatic.com/s/alice/v20/OpNCnoEEmtHa6GcOrg4.woff2")
@@ -24,15 +23,14 @@
 }
 
 body {
-  // font-family: "Alice";
+  font-family: "Alice";
   color: #4b4b4b;
-  // 在index.html中设置
   font-size: 1rem;
 }
 
 .tooltip {
-  border: $border;
-  border-radius: $border-radius-small;
+  border: var(--border);
+  border-radius: var(--border-radius-small);
   padding: 0.5rem;
   font-family: "Dosis";
   font-weight: 400;
@@ -40,11 +38,33 @@ body {
 }
 
 .q-item, a{
-  border-radius: $border-radius-small;
-  color: $text-color;
+  border-radius: var(--border-radius-small);
+  color: var(--text-color);
 }
 
 .q-item:hover, a:hover{
-  background-color: $hover-color;
-  color: $text-jump-color;
+  background-color: var(--hover-color);
+  color: var(--text-jump-color);
+}
+
+button {
+  border: var(--border);
+  border-radius: var(--border-radius-small);
+  background-color: transparent;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+a {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 1rem;
+  border-radius: var(--border-radius);
+  text-decoration: none;
+}
+
+.sephirah-drawer-item--active {
+  border: 2px solid #84d8ff;
+  background-color: #ddf4ff;
 }

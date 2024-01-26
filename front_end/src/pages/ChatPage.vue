@@ -10,7 +10,7 @@ import {useFloating, offset, computePosition} from '@floating-ui/vue';
 
 const welcomeMessage = { "role": "system", "content": '你好，我是sephirah，请问有什么我可以帮忙的吗？', "end": false}
 const router = useRouter()
-const maxChat = 10
+const maxChat = 30
 
 const messages = ref([welcomeMessage])
 const inputText = ref('')
@@ -32,6 +32,10 @@ const remainChat = computed(() => {
   return maxChat - assistantMessages.length
 })
 
+const canChat = computed(() => {
+  return remainChat.value > 0
+})
+
 //当剩余次数为0时，弹出提示
 watch(() => remainChat.value, () => {
   if (remainChat.value === 0) {
@@ -40,12 +44,17 @@ watch(() => remainChat.value, () => {
       position: 'top-center',
       timeout: 3000
     })
+    //禁用输入框
+    inputText.value = ''
   }
 })
 
 async function sendMessage(e) {
   if (e) {
     e.preventDefault()
+  }
+  if (inputText.value === '') {
+    return
   }
   messages.value.push({ "role": "user", "content": inputText.value })
   const sendText = inputText.value
@@ -108,7 +117,6 @@ onMounted(() => {
 </script>
 
 <template>
-  <q-page>
     <Toaster position="top-center" />
     <message-container>
       <Message v-for="message in messages" :content="message.content" :end="message.end" :role="message.role" :remain="remainChat" :total="maxChat" />
@@ -116,13 +124,12 @@ onMounted(() => {
     <footer>
       <input-container>
         <textarea autofocus v-model="inputText" type="textarea" @keydown.enter.preventDefault="sendMessage($event) " max-length="4000"
-          placeholder="请输入你的问题" />
-        <button class="material-icons submit-button" @click="sendMessage">send</button>
+          placeholder="请输入你的问题" :disabled="!canChat"/>
+        <button class="material-icons submit-button" @click="sendMessage" :disabled="!canChat">send</button>
       </input-container>
       <button ref="restart" class="material-icons new-chat" @click="reset" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false">restart_alt</button>
       <div class="tooltip" ref="tooltip" :style="floatingStyles" v-if="showTooltip">开启新记忆</div>
     </footer>
-  </q-page>
 </template>
 
 <style scoped lang="scss">
@@ -158,18 +165,19 @@ input-container {
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
-  border-radius: $border-radius;
-  border: $border;
+  border-radius: var(--border-radius);
+  border: var(--border);
   outline: none;
 }
 
-input-container textarea {
+textarea {
   line-height: 1rem;
   height: 1rem;
+  font-size: 1rem;
   resize: none;
   width: 92%;
   max-width: 92%;
-  border-radius: $border-radius;
+  border-radius: var(--border-radius);
   border: none;
   outline: none;
   background-color: transparent;
@@ -182,14 +190,14 @@ footer button {
   outline: none;
   background-color: transparent;
   cursor: pointer;
-  color: $component;
+  color: var(--component);
 }
 
 .new-chat {
   margin-left: 1rem;
   height: 3rem;
-  border: $border;
-  border-radius: $border-radius-small;
+  border: var(--border);
+  border-radius: var(--border-radius-small);
   color: pink;
   font-size: 2rem;
 }

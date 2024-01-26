@@ -66,7 +66,11 @@ class ChatSessionView(View):
                 return HttpResponseNotFound("session not found")
 
 
-    def delete(self, request):
-        # 删除所有大模型对话session
-        ChatSession.objects.all().delete()
-        return HttpResponse(json.dumps({'status': 'success'}))
+    def delete(self, request, session_id):
+        # 删除一个大模型对话session
+        try:
+            session = ChatSession.objects.get(session_id=session_id)
+            session.delete()
+            return HttpResponse(json.dumps({'status': 'success'}))
+        except:
+            return HttpResponseNotFound("session not found")

@@ -1,47 +1,48 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
-const sessions = ref([])
 
-const groups = computed(() => {
-    const g = {}
-    sessions.value.forEach(session => {
+const groups = ref({})
+
+async function fetchSessions()  {
+    let sessions = []
+    await fetch(import.meta.env.VITE_BACKEND_URL + '/api/chat/sessions?isAllSessions=true')
+        .then(response => response.json())
+        .then(data => {
+            sessions = data
+        })
+
+    sessions.forEach(session => {
         var date = new Date(session.start_time)
         // 转为东八区时间
-        date.setHours(date.getHours() + 8)
         const key = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`
-        if (!g[key]) {
-            g[key] = []
+        if (!groups.value[key]) {
+            groups.value[key] = []
         }
         const formatter = new Intl.DateTimeFormat('zh-CN', {
             hour12: false,
             hour: 'numeric',
             minute: 'numeric'
         })
-        const date_str = formatter.format(date)
-        const new_session = {
+        const dateStr = formatter.format(date)
+        const newSession = {
             ...session,
-            start_time: date_str
+            start_time: dateStr,
+            showDelete: false
         }
-        g[key].push(new_session)
+        groups.value[key].push(newSession)
     })
-    return g
-})
-
-const fetchSessions = async () => {
-    fetch(import.meta.env.VITE_BACKEND_URL + '/api/chat/sessions?isAllSessions=true')
-        .then(response => response.json())
-        .then(data => {
-            sessions.value = data
-        })
 }
-const deleteSessions = async () => {
-    fetch(import.meta.env.VITE_BACKEND_URL + '/api/chat/sessions', {
+async function deleteSession(e, session_id) {
+    e.preventDefault()
+    await fetch(import.meta.env.VITE_BACKEND_URL + `/api/chat/sessions/${session_id}`, {
         method: 'DELETE'
     })
-        .then(response => response.json())
-        .then(data => {
-            sessions.value = data
-        })
+    groups.value = {}
+    fetchSessions()
+}
+function switchShowDelete(session) {
+    session.showDelete = !session.showDelete
+    console.log(session)
 }
 
 onMounted(() => {
@@ -51,17 +52,16 @@ onMounted(() => {
 </script>
 
 <template>
-    <q-page>
         <main>
         <section v-for="(group, key) in groups">
             <caption>{{ key }}</caption>
-            <router-link v-for="session in group" :to="'/chat/'+session.session_id">
+            <router-link v-for="session in group" :to="'/chat/'+session.session_id" @mouseenter="switchShowDelete(session)" @mouseleave="switchShowDelete(session)">
                 <name>{{session.name}}</name>
-                <date>{{session.start_time}}</date>
+                <date v-if="!session.showDelete">{{session.start_time}}</date>
+                <button class="material-icons" @click="deleteSession($event,session.session_id)" v-if="session.showDelete">delete</button>   
             </router-link>
         </section>
         </main>
-    </q-page>
 </template>
 
 <style scoped lang="scss">
@@ -96,19 +96,21 @@ section {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    width: 100%;
+    width: 80%;
 }
 
 a {
-    display: flex;
-    flex-direction: row;
-    margin-top: 1rem;
-    border: $border;
-    border-radius: $border-radius;
-    padding: $border-padding;
-    width: 100%;
-    text-decoration: none;
-    //不显示超链接的颜色
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 1rem;
+  border: var(--border);
+  border-radius: var(--border-radius);
+  padding: var(--border-padding);
+  width: 100%;
+  //高度为padding * 2，使用css计算
+  height: calc(var(--border-padding) * 2);
+  text-decoration: none;
 }
 
 name {
@@ -118,9 +120,20 @@ name {
     overflow: hidden;   
 }
 
+button {
+    margin-left: auto;
+    margin-right: 0.5rem;
+    border: none;
+    padding: 0;
+    font-size: 1.5rem;
+}
+
+button:hover {
+    color: var(--danger);
+}
+
 date {
     margin-left: auto;
 }
-
 
 </style>

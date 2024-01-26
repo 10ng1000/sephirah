@@ -166,11 +166,6 @@
   resolved "https://registry.yarnpkg.com/@quasar/extras/-/extras-1.16.9.tgz#6cdf9d34862e6f58009443a2d1e34b84a5e73ad0"
   integrity sha512-SlOhwzXyPQHWgQIS2ncyDdYdksCJvUYNtgsDQqzAKEG3r3d/ejOxvThle79HTK3Q6HB+gQWFG21Ux00Osr5XSw==
 
-"@quasar/vite-plugin@^1.6.0":
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/@quasar/vite-plugin/-/vite-plugin-1.6.0.tgz#3b8f82656b14782fafe66b30dfac0775b87ab9dd"
-  integrity sha512-LmbV76G1CwWZbrEQhqyZpkRQTJyO3xpW55aXY1zWN+JhyUeG77CcMCEWteBVnJ6I6ehUPFDC9ONd2+WlwH6rNQ==
-
 "@rollup/rollup-android-arm-eabi@4.9.6":
   version "4.9.6"
   resolved "https://registry.yarnpkg.com/@rollup/rollup-android-arm-eabi/-/rollup-android-arm-eabi-4.9.6.tgz#66b8d9cb2b3a474d115500f9ebaf43e2126fe496"
@@ -517,11 +512,6 @@ postcss@^8.4.32, postcss@^8.4.33:
     nanoid "^3.3.7"
     picocolors "^1.0.0"
     source-map-js "^1.0.2"
-
-quasar@^2.14.2:
-  version "2.14.2"
-  resolved "https://registry.yarnpkg.com/quasar/-/quasar-2.14.2.tgz#794d8434eb449549fc8455aaec9bc14b71a57c98"
-  integrity sha512-f5KliWtM5BEuFsDU4yvuP+dlVIWZNrGu5VpWFsxzjpoykcP4B2HIOUiCl3mx2NCqERHd4Ts0aeioRkt9TTeExA==
 
 readdirp@~3.6.0:
   version "3.6.0"

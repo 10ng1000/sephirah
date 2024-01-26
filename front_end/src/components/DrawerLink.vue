@@ -1,50 +1,62 @@
-<template >
-  <q-item clickable :to="to" :active="active" class="q-my-sm sephirah-drawer-item"
-    :active-class="'q-my-sm sephirah-drawer-item--active'">
-    <q-item-section avatar>
-      <q-icon :name="icon" :color="color" v-if="icon" style="font-size: 2rem" />
-    </q-item-section>
-    <q-item-section>
-      {{ title }}
-    </q-item-section>
-  </q-item>
-</template>
-
 <script setup>
-import { ref } from 'vue'
+import { ref, computed} from 'vue'
 const props = defineProps({
-  title: {
-    type: String,
-    required: true
-  },
-  icon: {
-    type: String,
-    required: false
-  },
-  to: {
-    type: String,
-    required: false
-  },
-  color: {
-    type: String,
-    required: false
-  },
-  active: {
-    type: Boolean,
-    required: false
-  }
+  title: String,
+  icon: String,
+  to: String,
+  color: String,
+  active: 
+    {
+        type: Boolean,
+        default: false
+    }
+})
+
+const activeClass = computed(() => {
+  return props.active ? 'sephirah-drawer-item--active' : ''
 })
 </script>
 
+<template >
+    <router-link :to="props.to" activeClass="sephirah-drawer-item--active">
+        <link-icon class="material-icons" :style="{color:props.color}">{{ props.icon }}</link-icon>
+        <link-title>{{ props.title }}</link-title>
+    </router-link>
+</template>
+  
+
 <style scoped lang="scss">
-.sephirah-drawer-item {
-  font-size: 1rem;
-  height: 40px;
-  border-radius: $border-radius;
+
+  
+.sephirah-drawer-item--active {
+    border: 2px solid #84d8ff;
+    background-color: #ddf4ff;
+}
+  
+a {
+  margin-top: 0.5rem;
+  border: 2px solid transparent;
+  padding-left: 1rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  width: 90%;
 }
 
-.sephirah-drawer-item--active {
-  border: 2px solid #84d8ff;
-  background-color: #ddf4ff;
+link-icon {
+  font-size: 2rem;
+}
+link-title {
+  margin-left: 1.5rem;
+  font-size: 1rem;
+  line-height: 1rem;
+}
+
+@media (max-width: 768px) {
+    link-title {
+        font-size: 0;
+    }
+    a {
+        padding-left: 0.5rem;
+    }
 }
 </style>

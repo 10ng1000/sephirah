@@ -44,31 +44,55 @@ const toggleLeftDrawer = () => {
 </script>
 
 <template>
-  <q-layout view="lHh Lpr lFf">
-    <q-drawer v-model="leftDrawerOpen" show-if-above bordered :width="256" style="border-right: 1px solid gainsboro;">
-      <q-list>
-        <q-item header class="main-logo">Sephirah</q-item>
-        <div class="col q-mx-md q-mt-md justify-start">
-          <DrawerLink v-for="link in drawerLinks" :key="link.title" :title="link.title" :icon="link.icon" :to="link.to"
-            :color="link.color" :active="link.active"/>
-        </div>
-      </q-list>
-    </q-drawer>
-    <q-page-container>
-      <router-view />
-    </q-page-container>
-  </q-layout>
+  <main-container>
+    <nav style="border-right: 2px solid gainsboro;">
+      <header>Sephirah</header>
+      <link-container>
+      <DrawerLink v-for="link in drawerLinks" :key="link.title" :title="link.title" :icon="link.icon" :to="link.to"
+        :color="link.color" :active="link.active"/>
+      </link-container>
+    </nav>
+    <main>
+    <router-view />
+    </main>
+  </main-container>
 </template>
 
 <style lang="scss" scoped>
-.main-logo {
+main-container {
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 16% auto;
+}
+nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+header {
+  margin-top: 1rem;
   color: #58cc02;
   font-family: "Alice";
   font-size: 2.5rem;
   font-weight: bold;
-  justify-content: center;
 }
-.main-logo:hover {
-  background-color: transparent;
+@media (max-width: 768px) {
+  header {
+    font-size: 0;
+  }
+}
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+link-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 1rem;
+  width: 100%;
 }
 </style>

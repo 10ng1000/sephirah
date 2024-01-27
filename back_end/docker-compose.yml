@@ -4,7 +4,7 @@ services:
     build: 
       context: .
       target: 'python-develop-stage'
-    command: /bin/sh -c "pip3 install -q --no-cache-dir -r requirements.txt && python manage.py runserver 0.0.0.0:8000"
+    command: /bin/sh -c "pip3 install -q --no-cache-dir -r requirements.txt && python manage.py runserver 0.0.0.0:617"
     volumes:
       - .:/app
     restart: always

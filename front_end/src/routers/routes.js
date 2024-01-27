@@ -1,7 +1,7 @@
 const routes = [
   {
     path: "/",
-    component: () => import("/src/layouts/MainLayout.vue"),
+    redirect: "/chat",
   },
   {
     path: "/chat/:session_id",
@@ -26,7 +26,7 @@ const routes = [
   {
     path: "/knowledge",
     component: () => import("../layouts/MainLayout.vue"),
-    children: [{ path: "", component: () => import("../pages/ChatPage.vue") }],
+    children: [{ path: "", component: () => import("../pages/ShelfPage.vue") }],
   },
   {
     path: "/extract",

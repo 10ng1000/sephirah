@@ -19,13 +19,13 @@ const activeClass = computed(() => {
 
 <template >
     <router-link :to="props.to" activeClass="sephirah-drawer-item--active">
-        <link-icon class="material-icons" :style="{color:props.color}">{{ props.icon }}</link-icon>
-        <link-title>{{ props.title }}</link-title>
+        <span class="link-icon material-icons" :style="{color:props.color}">{{ props.icon }}</span>
+        <span class="link-title">{{ props.title }}</span>
     </router-link>
 </template>
   
 
-<style scoped lang="scss">
+<style scoped>
 
   
 .sephirah-drawer-item--active {
@@ -39,20 +39,20 @@ a {
   padding-left: 1rem;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
-  width: 90%;
+  width: 80%;
 }
 
-link-icon {
+.link-icon {
   font-size: 2rem;
 }
-link-title {
+.link-title {
   margin-left: 1.5rem;
   font-size: 1rem;
   line-height: 1rem;
 }
 
 @media (max-width: 768px) {
-    link-title {
+    .link-title {
         font-size: 0;
     }
     a {

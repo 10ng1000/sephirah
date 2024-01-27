@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import DrawerLink from '../components/DrawerLink.vue'
+import { Toaster } from 'vue-sonner'
 
 const leftDrawerOpen = ref(false)
 
@@ -44,22 +45,23 @@ const toggleLeftDrawer = () => {
 </script>
 
 <template>
-  <main-container>
+  <div class="page-wrapper">
     <nav style="border-right: 2px solid gainsboro;">
       <header>Sephirah</header>
-      <link-container>
+      <div class="link-container">
       <DrawerLink v-for="link in drawerLinks" :key="link.title" :title="link.title" :icon="link.icon" :to="link.to"
         :color="link.color" :active="link.active"/>
-      </link-container>
+      </div>
     </nav>
-    <main>
-    <router-view />
-    </main>
-  </main-container>
+    <div class="main-wrapper">
+      <Toaster position="top-center" richColors />
+      <router-view />
+    </div>
+  </div>
 </template>
 
-<style lang="scss" scoped>
-main-container {
+<style scoped>
+.page-wrapper {
   height: 100vh;
   display: grid;
   grid-template-columns: 16% auto;
@@ -82,12 +84,15 @@ header {
     font-size: 0;
   }
 }
-main {
+.main-wrapper {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
+  overflow: auto;
+  width: 100%;
 }
-link-container {
+.link-container {
   display: flex;
   flex-direction: column;
   align-items: center;

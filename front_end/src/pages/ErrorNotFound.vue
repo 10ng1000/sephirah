@@ -4,8 +4,7 @@
         404
   </div>
   <div style="font-size: 10vh; max-width: 80%">
-        你似乎输入了一个错误的网址，
-        或者该网址正在维护中
+        你似乎输入了一个错误的网址
   </div>
   </main>
 </template>
@@ -18,7 +17,7 @@ export default defineComponent({
 })
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 main {
   display: flex;
   flex-direction: column;

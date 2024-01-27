@@ -26,20 +26,19 @@ const { floatingStyles } = useFloating(restart, tooltip, {
   middleware: [offset(10)]
 })
 
-const remainChat = computed(() => {
+const usedChat = computed(() => {
   //计算所有role为assistant的message数量
-  const assistantMessages = messages.value.filter(message => message.role === 'user')
-  return maxChat - assistantMessages.length
+  return messages.value.filter(message => message.role === 'user').length
 })
 
 const canChat = computed(() => {
-  return remainChat.value > 0
+  return maxChat - usedChat.value >= 0
 })
 
 //当剩余次数为0时，弹出提示
-watch(() => remainChat.value, () => {
-  if (remainChat.value === 0) {
-    toast('本次记忆已用尽，请开启新的记忆', {
+watch(() => usedChat.value, () => {
+  if (usedChat.value === maxChat) {
+    toast.warning('本次记忆已用尽，请开启新的记忆', {
       type: 'negative',
       position: 'top-center',
       timeout: 3000
@@ -117,29 +116,27 @@ onMounted(() => {
 </script>
 
 <template>
-    <Toaster position="top-center" />
-    <message-container>
-      <Message v-for="message in messages" :content="message.content" :end="message.end" :role="message.role" :remain="remainChat" :total="maxChat" />
-    </message-container>
+    <main>
+      <Message v-for="(message, index) in messages" :content="message.content" :end="message.end" :role="message.role" :remain="index / 2" :total="maxChat" />
+    </main>
     <footer>
-      <input-container>
+      <div class="input-container">
         <textarea autofocus v-model="inputText" type="textarea" @keydown.enter.preventDefault="sendMessage($event) " max-length="4000"
           placeholder="请输入你的问题" :disabled="!canChat"/>
         <button class="material-icons submit-button" @click="sendMessage" :disabled="!canChat">send</button>
-      </input-container>
+      </div>
       <button ref="restart" class="material-icons new-chat" @click="reset" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false">restart_alt</button>
       <div class="tooltip" ref="tooltip" :style="floatingStyles" v-if="showTooltip">开启新记忆</div>
     </footer>
 </template>
 
-<style scoped lang="scss">
-message-container {
+<style scoped>
+
+main {
   width: 65%;
-  margin-top: 0;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  overflow: auto;
 }
 
 footer {
@@ -154,7 +151,7 @@ footer {
   background-color: white;
 }
 
-input-container {
+.input-container {
   margin-top: 2vh;
   margin-bottom: 2vh;
   align-self: center;
@@ -209,7 +206,6 @@ footer button {
 .q-page {
   display: flex;
   flex-direction: column;
-  //对齐底部
   justify-content: flex-start;
   align-items: center;
 }

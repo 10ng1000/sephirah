@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
+import {toast, Toaster} from 'vue-sonner';
 
 const groups = ref({})
 
@@ -34,15 +35,22 @@ async function fetchSessions()  {
 }
 async function deleteSession(e, session_id) {
     e.preventDefault()
-    await fetch(import.meta.env.VITE_BACKEND_URL + `/api/chat/sessions/${session_id}`, {
-        method: 'DELETE'
+    toast.error('确定删除该会话吗？', {
+        action: {
+            label: '确定',
+            onClick: async () => {
+                await fetch(import.meta.env.VITE_BACKEND_URL + `/api/chat/sessions/${session_id}`, {
+                    method: 'DELETE'
+                })
+                groups.value = {}
+                fetchSessions()
+            }
+        },
     })
-    groups.value = {}
-    fetchSessions()
+    
 }
 function switchShowDelete(session) {
     session.showDelete = !session.showDelete
-    console.log(session)
 }
 
 onMounted(() => {
@@ -52,19 +60,19 @@ onMounted(() => {
 </script>
 
 <template>
-        <main>
+    <main>
         <section v-for="(group, key) in groups">
             <caption>{{ key }}</caption>
             <router-link v-for="session in group" :to="'/chat/'+session.session_id" @mouseenter="switchShowDelete(session)" @mouseleave="switchShowDelete(session)">
-                <name>{{session.name}}</name>
-                <date v-if="!session.showDelete">{{session.start_time}}</date>
+                <span class="session-name">{{session.name}}</span>
+                <span class="session-date" v-if="!session.showDelete">{{session.start_time}}</span>
                 <button class="material-icons" @click="deleteSession($event,session.session_id)" v-if="session.showDelete">delete</button>   
             </router-link>
         </section>
-        </main>
+    </main>
 </template>
 
-<style scoped lang="scss">
+<style scoped>
 .q-page {
     display: flex;
     flex-direction: column;
@@ -75,12 +83,11 @@ onMounted(() => {
 main {
     display: flex;
     flex-direction: column;
-    align-items: sstretch;
+    align-items: center;
     justify-content: flex-start;
-    margin-inline: auto;
-    width: 65%;
+    margin-bottom: 3vh;
+    width: var(--main-width);
     height: 100%;
-    overflow-y: scroll;
 }
 
 caption {
@@ -108,17 +115,21 @@ a {
   border-radius: var(--border-radius);
   padding: var(--border-padding);
   width: 100%;
-  //高度为padding * 2，使用css计算
   height: calc(var(--border-padding) * 2);
   text-decoration: none;
 }
 
-name {
+.session-name {
     max-width: 80%;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;   
 }
+
+.session-date {
+    margin-left: auto;
+}
+
 
 button {
     margin-left: auto;
@@ -132,8 +143,5 @@ button:hover {
     color: var(--danger);
 }
 
-date {
-    margin-left: auto;
-}
 
 </style>

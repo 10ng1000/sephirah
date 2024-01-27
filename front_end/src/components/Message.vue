@@ -9,6 +9,7 @@ import hljs from 'highlight.js';
 import 'highlight.js/styles/github.css';
 //'github-markdown-css';
 import 'github-markdown-css/github-markdown.css';
+import copy from 'copy-to-clipboard';
 import { computed } from 'vue';
 import { watch } from 'vue';
 //导入quasar项目的app
@@ -35,6 +36,7 @@ const props = defineProps({
   remain: Number,
   total: Number
 });
+
 const isUser = computed(() => {
   return props.role === 'user';
 });
@@ -59,8 +61,8 @@ watch(() => props.content, () => {
   }
 });
 function copyText() {
-  navigator.clipboard.writeText(props.content);
-  toast('已成功复制到剪贴板');
+    copy(props.content);
+    toast.success('已成功复制到剪贴板');
 }
 function changeThumbUp() {
   if (thumb_up.value === 'thumb_up_off_alt') {
@@ -90,26 +92,26 @@ function changeThumbDown() {
 </script>
 
 <template>
-  <main :class="{ userMessage: isUser, aiMessage: !isUser }">
+  <article :class="['message-container' ,{userMessage: isUser, aiMessage: !isUser}]">
     <div v-html="html" class="markdown-body"></div>
     <div v-if="!isUser">
       <hr />
-      <buttons>
+      <div class="button-container">
         <button :class="['material-icons', { 'is-jumping': isThumbUpJumping }]" @click="changeThumbUp">{{ thumb_up }}</button>
         <button :class="['material-icons', { 'is-jumping': isThumbDownJumping }]" @click="changeThumbDown">{{ thumb_down
         }}</button>
         <button :class="['material-icons', {'copy-btn': !end}]" @click="copyText">content_copy</button>
-        <remain-text v-if="end">
+        <span class="remain-text" v-if="end">
           <!-- todo 增加进度条 -->
           {{ remain }}/{{ total }}
-        </remain-text>
-      </buttons>
+        </span>
+      </div>
     </div>
-  </main>
+  </article>
 </template>
 
-<style scoped lang="scss">
-main {
+<style scoped>
+.message-container {
   margin-top: 2rem;
   border: var(--border);
   border-radius: var(--border-radius);
@@ -132,16 +134,14 @@ hr {
   background: var(--component);
 }
 
-remain-text {
+.remain-text {
   margin-left: auto;
   line-height: 1.5rem;
   font-size: 1.2rem;
   align-self:flex-end;
 }
 
-.copy-btn {
-  margin-left: auto;
-}
+
 .userMessage {
   margin-right: 5%;
   margin-left: auto;
@@ -152,7 +152,7 @@ remain-text {
   margin-right: auto;
 }
 
-buttons {
+.button-container {
   display: flex;
   justify-content: flex-start;
   margin-top: 0.5rem;

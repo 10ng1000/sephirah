@@ -17,6 +17,7 @@ from corsheaders.middleware import CorsMiddleware
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     'corsheaders', # CORS
     'extraction',
     'chat',
+    'book_manage',
 ]
 
 MIDDLEWARE = [
@@ -139,3 +141,7 @@ CORS_ALLOW_CREDENTIALS = True
 SECURE_SSL_REDIRECT=False
 SESSION_COOKIE_SECURE=False
 CSRF_COOKIE_SECURE=False
+
+# 保存的文件位置
+MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = '/media/'

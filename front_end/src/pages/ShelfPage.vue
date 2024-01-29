@@ -1,7 +1,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router';
 
-const url = ref(import.meta.env.VITE_BACKEND_URL + '/api/files')
+const url = ref(import.meta.env.VITE_BACKEND_URL + '/api/books/')
 const files = ref(null)
 
 const newTitle = computed(() => {
@@ -15,7 +16,7 @@ const hasFile = computed(() => {
     return files.value !== null
 })
 
-const documents = ref([
+const books = ref([
     {title: 'Divina Commedia'},
     {title: '거울'},
     {title: '红楼梦'},
@@ -26,29 +27,55 @@ const documents = ref([
 ])
 
 function addDocument() {
-    documents.value.push({title: 'Document ' + (documents.value.length + 1)})
+    books.value.push({title: 'Document ' + (books.value.length + 1)})
 }
 
 function handleFileChange() {
     const input = document.getElementById('file-input')
     files.value = input.files
-    console.log(files.value)
 }
 
+async function handleSubmit(e){
+    e.preventDefault()
+    const formData = new FormData()
+    formData.append("file", files.value[0])
+    //发送表单信息
+    const response = await fetch(url.value, {
+        method: 'post',
+        body: formData
+        }
+    )
+    window.location.reload()
+}
 
+async function fetchBooksAndPush() {
+    fetch(url.value).then(response => response.json()).then(
+        data => {
+            for (const book of data) {
+                books.value.unshift(book)
+            }
+        }
+    )
+}
 
+onMounted( async ()=>{
+    fetchBooksAndPush()
+}
+)
 </script>
 
 <template>
     <input type="file" id="file-input" accept=".txt" @change="handleFileChange"/>
     <main>
         <label for="file-input" class="document-container add-document">
-        <form method="post" enctype="multipart/form-data" :action="url">
+        <form method="post" id="file-form" enctype="multipart/form-data" :action="url" @submit="handleSubmit" target="_self">
             <div v-if="files === null">+</div>
+            <!-- todo 加上颜色前后变换 -->
             <div>{{newTitle}}</div>
+            <button class="material-icons" v-if="files != null">upload_file</button>
         </form>
         </label>
-        <article class="document-container" v-for="document in documents">
+        <article class="document-container" v-for="document in books">
             <div class="document-title">{{document.title}}</div>
             <div></div>
         </article>
@@ -67,6 +94,8 @@ main {
     width: 80%;
     height: 100%;
     font-size: 2rem;
+    font-family: Alice;
+    text-align: center;
 }
 
 .document-container {
@@ -97,8 +126,11 @@ input {
     cursor: pointer;
 }
 
-div {
-    text-align: center;
+
+button {
+    margin-top: 2rem;
+    padding: 1rem;
+    font-size: 2rem;
 }
 
 @media (max-width: 768px) {

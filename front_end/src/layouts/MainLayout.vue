@@ -7,7 +7,7 @@ const leftDrawerOpen = ref(false)
 
 const drawerLinks = ref([
   {
-    title: '问答',
+    title: '聊天',
     icon: 'chat',
     to: '/chat',
     color: 'orange'
@@ -25,17 +25,23 @@ const drawerLinks = ref([
     color: 'blue'
   },
   {
-    title: '知识图谱',
-    icon: 'hub',
-    to: '/graph',
+    title: '设置',
+    icon: 'settings',
+    to: '/settings',
     color: 'green'
-  },
-  {
-    title: '提取',
-    icon: 'sync',
-    to: '/extract',
-    color: 'red'
   }
+  // {
+  //   title: '知识图谱',
+  //   icon: 'hub',
+  //   to: '/graph',
+  //   color: 'green'
+  // },
+  // {
+  //   title: '提取',
+  //   icon: 'sync',
+  //   to: '/extract',
+  //   color: 'red'
+  // }
 ])
 
 const toggleLeftDrawer = () => {

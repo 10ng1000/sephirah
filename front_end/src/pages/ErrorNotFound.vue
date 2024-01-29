@@ -4,7 +4,7 @@
         404
   </div>
   <div style="font-size: 10vh; max-width: 80%">
-        你似乎输入了一个错误的网址
+        你似乎进入了未被开发的领域
   </div>
   </main>
 </template>

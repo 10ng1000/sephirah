@@ -5,3 +5,4 @@ back_end/redis_data/*
 back_end/data/*
 !back_end/data/README.md
 back_end/test.py
+.practice.swp

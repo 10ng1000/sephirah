@@ -1,6 +1,7 @@
 :root {
     --component: #1cb0f6;
     --border-color: gainsboro;
+    --book-color: var(--component);
     --border: 2px solid var(--border-color);
     --border-radius: 1rem;
     --border-radius-small: 0.75rem;

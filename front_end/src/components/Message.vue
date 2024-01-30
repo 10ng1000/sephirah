@@ -12,6 +12,7 @@ import 'github-markdown-css/github-markdown.css';
 import copy from 'copy-to-clipboard';
 import { computed } from 'vue';
 import { watch } from 'vue';
+
 //导入quasar项目的app
 const marked = new Marked(
   markedHighlight({

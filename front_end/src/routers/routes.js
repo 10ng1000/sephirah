@@ -19,11 +19,6 @@ const routes = [
     children: [{ path: "", component: () => import("../pages/MemoryBankPage.vue") }],
   },
   {
-    path: "/graph",
-    component: () => import("../layouts/MainLayout.vue"),
-    children: [{ path: "", component: () => import("../pages/ChatPage.vue") }],
-  },
-  {
     path: "/knowledge",
     component: () => import("../layouts/MainLayout.vue"),
     children: [{ path: "", component: () => import("../pages/ShelfPage.vue") }],
@@ -32,6 +27,11 @@ const routes = [
     path: "/extract",
     component: () => import("../layouts/MainLayout.vue"),
     children: [{ path: "", component: () => import("../pages/ChatPage.vue") }],
+  },
+  {
+    path: "/books/:book_id",
+    component: () => import("../layouts/MainLayout.vue"),
+    children: [{ path: "", component: () => import("../pages/BookPage.vue") }],
   },
   {
     path: "/:catchAll(.*)*",

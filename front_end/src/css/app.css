@@ -68,3 +68,16 @@ a {
   border: 2px solid #84d8ff;
   background-color: #ddf4ff;
 }
+
+textarea {
+  line-height: 1rem;
+  height: 1rem;
+  font-size: 1rem;
+  resize: none;
+  width: 92%;
+  max-width: 92%;
+  border-radius: var(--border-radius);
+  border: none;
+  outline: none;
+  background-color: transparent;
+}

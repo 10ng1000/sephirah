@@ -7,10 +7,13 @@ import { fetchEventSource } from '@microsoft/fetch-event-source';
 import autosize from 'autosize';
 import { onMounted } from 'vue';
 import {useFloating, offset, computePosition} from '@floating-ui/vue';
+import {useMaxChatStore} from '../store/maxChat'
+import { storeToRefs } from 'pinia';
 
 const welcomeMessage = { "role": "system", "content": '你好，我是sephirah，请问有什么我可以帮忙的吗？', "end": false}
 const router = useRouter()
-const maxChat = 30
+const store = useMaxChatStore()
+const {maxChat} = storeToRefs(store)
 
 const messages = ref([welcomeMessage])
 const inputText = ref('')
@@ -32,12 +35,12 @@ const usedChat = computed(() => {
 })
 
 const canChat = computed(() => {
-  return maxChat - usedChat.value >= 0
+  return maxChat.value - usedChat.value >= 0
 })
 
 //当剩余次数为0时，弹出提示
 watch(() => usedChat.value, () => {
-  if (usedChat.value === maxChat) {
+  if (usedChat.value === maxChat.value) {
     toast.warning('本次记忆已用尽，请开启新的记忆', {
       type: 'negative',
       position: 'top-center',
@@ -117,11 +120,13 @@ onMounted(() => {
 
 <template>
     <main>
+      <div class="message-wrapper">
       <Message v-for="(message, index) in messages" :content="message.content" :end="message.end" :role="message.role" :remain="index / 2" :total="maxChat" />
+      </div>
     </main>
     <footer>
       <div class="input-container">
-        <textarea autofocus v-model="inputText" type="textarea" @keydown.enter.preventDefault="sendMessage($event) " max-length="4000"
+        <textarea autofocus v-model="inputText" type="textarea" @keydown.enter.prevent="sendMessage($event) " max-length="4000"
           placeholder="请输入你的问题" :disabled="!canChat"/>
         <button class="material-icons submit-button" @click="sendMessage" :disabled="!canChat">send</button>
       </div>
@@ -133,10 +138,19 @@ onMounted(() => {
 <style scoped>
 
 main {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow: auto;
+  width: 100%;
+}
+
+.message-wrapper {
   width: 65%;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  align-self: center;
 }
 
 footer {
@@ -201,12 +215,5 @@ footer button {
 
 .new-chat:hover {
   background-color: #f5f5f5;
-}
-
-.q-page {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
 }
 </style>

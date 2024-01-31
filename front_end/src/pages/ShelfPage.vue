@@ -7,6 +7,7 @@ import axios from 'axios'
 const router = useRouter()
 
 const files = ref(null)
+const editFiles = ref(null)
 
 const newTitle = computed(() => {
     if (!files.value) {
@@ -19,6 +20,10 @@ const hasFile = computed(() => {
     return files.value !== null
 })
 
+const hasEditFile = computed(() => {
+    return editFiles.value !== null
+})
+
 const books = ref([])
 
 function handleFileChange() {
@@ -26,14 +31,30 @@ function handleFileChange() {
     files.value = input.files
 }
 
-async function handleSubmit(e){
+function handleEditFileChange() {
+    const input = document.getElementById('edit-book')
+    editFiles.value = input.files
+}
+
+async function handleSubmit(){
     const formData = new FormData()
     formData.append("file", files.value[0])
-    //发送表单信息
     axios.post('api/books/',formData).then(
         () => {
             fetchBooksAndPush()
             files.value = null
+        }
+    )
+}
+
+async function handleEditSubmit(bookId){
+    const formData = new FormData()
+    formData.append("file", editFiles.value[0])
+    //发送表单信息
+    axios.post(`api/books/${bookId}`,formData).then(
+        () => {
+            fetchBooksAndPush()
+            editFiles.value = null
         }
     )
 }
@@ -90,20 +111,24 @@ onMounted( async ()=>{
 
 <template>
     <input type="file" id="file-input" accept=".txt" @change="handleFileChange"/>
+    <input type="file" id="edit-book" accept=".txt" @change="handleEditFileChange"/>
     <main>
         <label for="file-input" class="document-container add-document">
-        <form method="post" id="file-form" action enctype="multipart/form-data" @submit.prevent="handleSubmit">
+        <form method="post" action enctype="multipart/form-data" @submit.prevent="handleSubmit">
             <div v-show="files === null">+</div>
             <!-- todo 加上颜色前后变换 -->
             <div>{{newTitle}}</div>
-            <button class="material-icons" v-if="files != null">upload_file</button>
+            <button class="book-button material-icons" v-if="files != null">upload_file</button>
         </form>
         </label>
         <article class="document-container" v-for="document in books" @click.self="viewBook(document.id)" @mouseenter="document.isHover=1" @mouseleave="document.isHover=0">
             <div class="document-title">{{document.title}}</div>
             <div class="button-group">
-                <button class="material-icons" @click="deleteBook(document.id)">delete</button>
-                <button class="material-icons" @click="editBook(document.id)">edit</button>
+                <button class="book-button material-icons" @click="deleteBook(document.id)">delete</button>
+                <label class="book-button material-icons" for="edit-book">edit</label>
+                <form method="post" action enctype="multipart/form-data" @submit.prevent="handleEditSubmit(document.id)">
+                    <button class="book-button material-icons" v-if="editFiles != null">upload_file</button>
+                </form>
             </div>
         </article>
     </main>
@@ -168,10 +193,18 @@ input {
     transition: opacity 200ms ease-in-out;
 }
 
-button {
+.book-button {
     margin-top: 2rem;
+    border: var(--border);
+    border-radius: var(--border-radius-small);
     padding: 1rem;
     font-size: 2rem;
+    cursor: pointer;
+}
+
+.book-button:hover {
+    background-color: var(--hover-color);
+    color: var(--text-jump-color);
 }
 
 .button-group:hover {

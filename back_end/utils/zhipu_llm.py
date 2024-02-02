@@ -160,9 +160,9 @@ class ZhipuEmbedding(Embeddings):
 
 if __name__ == "__main__":
     ZhipuLLM = ZhipuLLMWithMemory(session_id="测试bot4")
-    #ic(ZhipuLLM.invoke("你好"))
-    # for chunk in ZhipuLLM.stream("你好，我上一句问了你什么"):
-    #     print(chunk, end="", flush=True)
-    # ZhipuEmbedding = ZhipuEmbedding()
-    # ic(ZhipuEmbedding.embed_documents(["你好", "你好吗"]))
-    # ic(ZhipuEmbedding.embed_query("你好"))
+    ic(ZhipuLLM.invoke("你好"))
+    for chunk in ZhipuLLM.stream("你好，我上一句问了你什么"):
+         print(chunk, end="", flush=True)
+    ZhipuEmbedding = ZhipuEmbedding()
+    ic(ZhipuEmbedding.embed_documents(["你好", "你好吗"]))
+    ic(ZhipuEmbedding.embed_query("你好"))

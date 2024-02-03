@@ -116,7 +116,7 @@ function changeThumbDown() {
   margin-top: 2rem;
   border: var(--border);
   border-radius: var(--border-radius);
-  max-width: 90%;
+  max-width: 80%;
   padding: 1rem;
 }
 

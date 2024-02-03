@@ -43,34 +43,27 @@ class ChatSessionView(View):
         session.save()
         return HttpResponse(json.dumps({'session_id': session_id}))
     
-    def get(self, request):
+    def get(self, request, session_id):
         # 获取所有大模型对话session，按时间顺序排序
         # 如果获得所有
-        isAllSessions = request.GET.get('isAllSessions')
-        if isAllSessions:
-            sessions = ChatSession.objects.all().order_by('-start_time')
-            return HttpResponse(json.dumps(
-                [{'session_id': session.session_id, 'name': session.name,'start_time': str(session.start_time)} for session in sessions]
-            ))
-        else:
-            session_id = request.GET.get('session_id')
-            if not session_id:
-                return HttpResponseBadRequest("session_id is required")
-            try:
-                session = ChatSession.objects.get(session_id=session_id)
-                #获得redis中session对应的聊天记录
-                memory = RedisMemory(session_id=session_id)
-                history = memory.get_history()
-                return HttpResponse(json.dumps({'session_id': session.session_id, 'name': session.name, 'start_time': str(session.start_time), 'history': history}))
-            except:
-                return HttpResponseNotFound("session not found")
+        session = ChatSession.objects.get(session_id=session_id)
+        books = session.book_set.all()
+        #获得redis中session对应的聊天记录
+        memory = RedisMemory(session_id=session_id)
+        history = memory.get_history()
+        return HttpResponse(json.dumps({'session_id': session.session_id, 'name': session.name, 'start_time': str(session.start_time), 'history': history, 'books': [{'id': book.id, 'title': book.title} for book in books]}))
 
 
     def delete(self, request, session_id):
         # 删除一个大模型对话session
-        try:
-            session = ChatSession.objects.get(session_id=session_id)
-            session.delete()
-            return HttpResponse(json.dumps({'status': 'success'}))
-        except:
-            return HttpResponseNotFound("session not found")
+        session = ChatSession.objects.get(session_id=session_id)
+        session.delete()
+        return HttpResponse(json.dumps({'status': 'success'}))
+        
+class ChatSessionsView(View):
+    def get(self, request):
+        # 获取所有大模型对话session，按时间顺序排序
+        sessions = ChatSession.objects.all().order_by('-start_time')
+        return HttpResponse(json.dumps(
+            [{'session_id': session.session_id, 'name': session.name,'start_time': str(session.start_time)} for session in sessions]
+        ))

@@ -6,7 +6,7 @@ const groups = ref({})
 
 async function fetchSessions()  {
     let sessions = []
-    await fetch(import.meta.env.VITE_BACKEND_URL + '/api/chat/sessions?isAllSessions=true')
+    await fetch(import.meta.env.VITE_BACKEND_URL + '/api/chat/sessions')
         .then(response => response.json())
         .then(data => {
             sessions = data

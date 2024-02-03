@@ -81,3 +81,38 @@ textarea {
   outline: none;
   background-color: transparent;
 }
+
+/* book相关 */
+input {
+  opacity: 0;
+  display: none;
+}
+
+.add-document {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  font-size: 2rem;
+  border: 2px dashed hsl(92, 59%, 66%);
+  border-radius: var(--border-radius-small);
+  padding: 2rem;
+  color: var(--component);
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.book-button {
+  margin-top: 2rem;
+  border: var(--border);
+  border-radius: var(--border-radius-small);
+  padding: 1rem;
+  font-size: 2rem;
+  cursor: pointer;
+}
+
+.book-button:hover {
+  background-color: var(--hover-color);
+  color: var(--text-jump-color);
+}

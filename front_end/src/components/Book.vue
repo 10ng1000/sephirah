@@ -4,17 +4,20 @@ import { useRouter } from 'vue-router';
 import { toast} from 'vue-sonner';
 import axios from 'axios'
 import {useFloating, offset} from '@floating-ui/vue';
+import {useChatSessionStore} from '../store/chatSession';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps({
     id: String,
     title: String,
-    linkedChatSessions: Array
+    isLinked: Boolean,
 })
 
+const {chatSession} = storeToRefs(useChatSessionStore())
 const router = useRouter()
 const Files = ref(null)
-const isHover = ref(false)
-const isLink = ref(false)
+const isHover = ref(false)  
+const isLink = ref(props.isLinked)
 
 const showTooltip = ref(false)
 const toggle = ref(null)
@@ -23,6 +26,28 @@ const { floatingStyles } = useFloating(toggle, tooltip, {
   placement: 'top',
   middleware: [offset(40)]
 })
+
+function changeLinkAndSubmit() {
+    //发送表单信息
+    if (isLink.value) {
+        axios.post(`api/chat/sessions/${chatSession.value}/books`, {book_id: props.id}).then(
+            () => {
+                toast.success("链接成功")
+            }
+        ).catch(
+            error => toast.error(`链接失败: ${error}`)
+        )
+    }
+    else {
+        axios.delete(`api/books/${props.id}/chat-sessions`).then(
+            () => {
+                toast.success("取消链接成功")
+            }
+        ).catch(
+            error => toast.error("取消链接失败")
+        )
+    }
+}
 
 function handleFileChange() {
     const input = document.getElementById('edit-book')
@@ -72,7 +97,7 @@ function viewBook() {
 <template>
     <article @click.self="viewBook()" @mouseenter="isHover = true" @mouseleave="isHover = false">
         <input type="file" id="edit-book" accept=".txt" @change="handleFileChange" />
-        <input type="checkbox" id="check" v-model="isLink"/>
+        <input type="checkbox" id="check" v-model="isLink" @change="changeLinkAndSubmit"/>
         <label class="toggle-button" for="check" ref="toggle" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"></label>
         <div class="tooltip" ref="tooltip" :style="floatingStyles" v-if="showTooltip">链接到当前对话</div>
         <div class="document-title">{{ props.title }}</div>

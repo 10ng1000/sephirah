@@ -31,6 +31,22 @@ class ChatView(View):
         return HttpResponse(json.dumps({'text': self.zhipuLLM().invoke(message)}))
 
 class ChatSessionView(View):
+    def get(self, request, session_id):
+        # 获取一个大模型对话session
+        session = ChatSession.objects.get(session_id=session_id)
+        books = session.linked_books.all()
+        #获得redis中session对应的聊天记录
+        memory = RedisMemory(session_id=session_id)
+        history = memory.get_history()
+        return HttpResponse(json.dumps({'session_id': str(session.session_id), 'name': session.name, 'start_time': str(session.start_time), 'history': history, 'books': [{'id': str(book.id), 'title': book.title} for book in books]}))
+
+    def delete(self, request, session_id):
+        # 删除一个大模型对话session
+        session = ChatSession.objects.get(session_id=session_id)
+        session.delete()
+        return HttpResponse(json.dumps({'status': 'success'}))
+        
+class ChatSessionsView(View):
     def post(self, request):
         # 创建一个新的大模型对话session
         # 使用时间戳加随机数作为session_id
@@ -42,28 +58,32 @@ class ChatSessionView(View):
         session = ChatSession(session_id=session_id, name=name)
         session.save()
         return HttpResponse(json.dumps({'session_id': session_id}))
-    
-    def get(self, request, session_id):
-        # 获取所有大模型对话session，按时间顺序排序
-        # 如果获得所有
-        session = ChatSession.objects.get(session_id=session_id)
-        books = session.book_set.all()
-        #获得redis中session对应的聊天记录
-        memory = RedisMemory(session_id=session_id)
-        history = memory.get_history()
-        return HttpResponse(json.dumps({'session_id': session.session_id, 'name': session.name, 'start_time': str(session.start_time), 'history': history, 'books': [{'id': book.id, 'title': book.title} for book in books]}))
 
-
-    def delete(self, request, session_id):
-        # 删除一个大模型对话session
-        session = ChatSession.objects.get(session_id=session_id)
-        session.delete()
-        return HttpResponse(json.dumps({'status': 'success'}))
-        
-class ChatSessionsView(View):
     def get(self, request):
         # 获取所有大模型对话session，按时间顺序排序
         sessions = ChatSession.objects.all().order_by('-start_time')
         return HttpResponse(json.dumps(
-            [{'session_id': session.session_id, 'name': session.name,'start_time': str(session.start_time)} for session in sessions]
+            [{'session_id': str(session.session_id), 'name': session.name,'start_time': str(session.start_time)} for session in sessions]
         ))
+    
+class ChatSessionBooksView(View):
+    def post(self, request, session_id):
+        # 为一个大模型对话session添加一本书
+        book_id = json.loads(request.body).get('book_id')
+        session = ChatSession.objects.get(session_id=session_id)
+        session.linked_books.add(book_id)
+        return HttpResponse(json.dumps({'status': 'success'}))
+
+    def get(self, request, session_id):
+        # 获取一个大模型对话session的所有书id
+        session = ChatSession.objects.get(session_id=session_id)
+        books = session.linked_books.all()
+        return HttpResponse(json.dumps([{'id': str(book.id)} for book in books]))
+
+    def delete(self, request, session_id):
+        # 删除一个大模型对话session的某一本书
+        session = ChatSession.objects.get(session_id=session_id)
+        book_id = json.loads(request.body).get('book_id')
+        book = session.linked_books.get(id=book_id)
+        session.linked_books.remove(book)
+        return HttpResponse(json.dumps({'status': 'success'}))

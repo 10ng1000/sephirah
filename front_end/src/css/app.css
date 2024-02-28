@@ -88,21 +88,6 @@ input {
   display: none;
 }
 
-.add-document {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background-color: transparent;
-  font-size: 2rem;
-  border: 2px dashed hsl(92, 59%, 66%);
-  border-radius: var(--border-radius-small);
-  padding: 2rem;
-  color: var(--component);
-  box-shadow: none;
-  cursor: pointer;
-}
-
 .book-button {
   margin-top: 2rem;
   border: var(--border);

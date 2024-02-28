@@ -1,13 +1,15 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router';
-import { toast} from 'vue-sonner';
 import axios from 'axios'
 import Book from '../components/Book.vue';
+import {useChatSessionStore} from '../store/chatSession';
+import { storeToRefs } from 'pinia';
 
-const router = useRouter()
 const files = ref(null)
-const editFiles = ref(null)
+const books = ref([])
+const store = useChatSessionStore()
+const {chatSession} = storeToRefs(store)
 
 const newTitle = computed(() => {
     if (!files.value) {
@@ -16,11 +18,6 @@ const newTitle = computed(() => {
     return files.value[0].name
 })
 
-const hasFile = computed(() => {
-    return files.value !== null
-})
-
-const books = ref([])
 
 function handleFileChange() {
     const input = document.getElementById('file-input')
@@ -40,9 +37,26 @@ async function handleSubmit(){
 }
 
 async function fetchBooks(){
+    let linkedBooks = []
+    if (chatSession.value) {
+        axios.get(`api/chat/sessions/${chatSession.value}/books`).then(
+            response => {
+                response.data.forEach(book => {
+                    linkedBooks.push(book.id)
+                    console.log(book.id)
+                })
+            }
+        )
+    }
     axios.get('api/books/').then(
         response => {
             books.value = response.data
+            // 用linkedBooks更新books的isLinked属性
+            books.value.forEach(book => {
+                book.isLinked = linkedBooks.includes(book.id)
+                console.log(book.isLinked)
+            })
+
         }
     )
 }
@@ -61,10 +75,11 @@ onMounted( async ()=>{
             <div v-show="files === null">+</div>
             <!-- todo 加上颜色前后变换 -->
             <div>{{newTitle}}</div>
+            <!-- todo 激活的放在前面 -->
             <button class="book-button material-icons" v-if="files != null">upload_file</button>
         </form>
         </label>
-        <Book class="document-container" v-for="book in books" :id="book.id" :title="book.title"/>
+        <Book class="document-container" v-for="book in books" :id="book.id" :title="book.title" :isLinked="book.isLinked"/>
     </main>
 </template>
 
@@ -83,8 +98,24 @@ main {
 }
 
 .document-container {
-  width: 14vw;
-  height: 40vh;
+  width: 12rem;
+  height: 17rem;
+}
+
+.add-document {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  font-size: 2rem;
+  border: 2px dashed hsl(92, 59%, 66%);
+  border-radius: var(--border-radius-small);
+  padding: 2rem;
+  color: var(--component);
+  box-shadow: none;
+  cursor: pointer;
 }
 
 .document-container:hover {

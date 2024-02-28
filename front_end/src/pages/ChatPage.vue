@@ -7,18 +7,19 @@ import { fetchEventSource } from '@microsoft/fetch-event-source';
 import autosize from 'autosize';
 import { onMounted } from 'vue';
 import {useFloating, offset, computePosition} from '@floating-ui/vue';
-import {useMaxChatStore} from '../store/maxChat'
+import {useMaxChatStore} from '../store/maxChat';
+import {useChatSessionStore} from '../store/chatSession';
 import { storeToRefs } from 'pinia';
 
 const welcomeMessage = { "role": "system", "content": '你好，我是sephirah，请问有什么我可以帮忙的吗？', "end": false}
 const router = useRouter()
-const store = useMaxChatStore()
-const {maxChat} = storeToRefs(store)
+const maxChatStore = useMaxChatStore() 
+const chatSessionStore = useChatSessionStore()
+const {maxChat} = storeToRefs(maxChatStore)
+const {chatSession} = storeToRefs(chatSessionStore)
 
 const messages = ref([welcomeMessage])
 const inputText = ref('')
-//sessionId从路由获取
-const sessionId = ref('')
 
 //展示tooltip
 const showTooltip = ref(false)
@@ -65,7 +66,7 @@ async function sendMessage(e) {
   const lastMessage = messages.value[messages.value.length - 1]
   inputText.value = ''
   //请求服务器的会话
-  if (sessionId.value === '') {
+  if (chatSession.value === null) {
     //post调用
     const response = await fetch(import.meta.env.VITE_BACKEND_URL + '/api/chat/sessions', {
       method: 'POST',
@@ -74,14 +75,14 @@ async function sendMessage(e) {
       })
     })
     const data = await response.json()
-    sessionId.value = data.session_id
-    router.replace({path: `/chat/${sessionId.value}`})
+    chatSession.value = data.session_id
+    router.replace({path: `/chat/${chatSession.value}`})
   }
   await fetchEventSource(import.meta.env.VITE_BACKEND_URL + '/api/chat/sse_invoke', {
     method: 'POST',
     body: JSON.stringify({
       "message": sendText,
-      "session_id": sessionId.value
+      "session_id": chatSession.value
     }),
     onmessage(event) {
       const data = JSON.parse(event.data)
@@ -93,7 +94,7 @@ async function sendMessage(e) {
 function reset() {
   messages.value = [welcomeMessage]
   inputText.value = ''
-  sessionId.value = ''
+  chatSession.value = ''
   router.replace({path: "/chat"})
 }
 
@@ -101,9 +102,9 @@ onMounted(() => {
   autosize(document.querySelectorAll('textarea'));
   const route = useRoute()
   if (route.params.session_id) {
-    sessionId.value = route.params.session_id
+    chatSession.value = route.params.session_id
     //加载历史消息
-    fetch(import.meta.env.VITE_BACKEND_URL + `/api/chat/sessions/${sessionId.value}`)
+    fetch(import.meta.env.VITE_BACKEND_URL + `/api/chat/sessions/${chatSession.value}`)
       .then(response => response.json())
       .then(data => {
         messages.value = [welcomeMessage]

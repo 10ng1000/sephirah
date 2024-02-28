@@ -1,15 +1,19 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import DrawerLink from '../components/DrawerLink.vue'
 import { Toaster } from 'vue-sonner'
+import {useChatSessionStore} from '../store/chatSession';
+import { storeToRefs } from 'pinia';
 
 const leftDrawerOpen = ref(false)
+const {chatSession} = storeToRefs(useChatSessionStore())
 
+//todo 跳转页面
 const drawerLinks = ref([
   {
-    title: '聊天',
+  title: '聊天',
     icon: 'chat',
-    to: '/chat',
+    to: '/chat' + (chatSession.value ? `/${chatSession.value}` : ''),
     color: 'orange'
   },
   {

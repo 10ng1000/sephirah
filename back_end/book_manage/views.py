@@ -16,7 +16,10 @@ class BooksView(View):
     
     def get(self, request):
         books = Book.objects.all()
-        return HttpResponse(json.dumps([{'title': book.title, 'id': str(book.id), "upload_time": str(book.upload_time)} for book in books]), content_type='application/json')
+        ret = []
+        for book in books:
+            ret.append({'title': book.title, 'id': str(book.id), "upload_time": str(book.upload_time)})
+        return HttpResponse(json.dumps(ret), content_type='application/json')
         
 class SingleBookView(View):
     def post(self, request, id):
@@ -49,3 +52,8 @@ class BookSessionView(View):
         chat_session_id = json.loads(request.body.decode('utf-8'))['chat_session_id']
         book.chat_sessions.add(chat_session_id)
         return HttpResponse(json.dumps({'status': 'ok'}))
+    
+    def get(self, request, id):
+        book = Book.objects.get(id = id)
+        chat_sessions = book.chat_sessions.all()
+        return HttpResponse(json.dumps([{'id': str(chat_session.id), 'title': chat_session.title} for chat_session in chat_sessions]), content_type='application/json')

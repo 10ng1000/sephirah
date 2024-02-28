@@ -1,8 +1,11 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import {toast, Toaster} from 'vue-sonner';
+import {useChatSessionStore} from '../store/chatSession';
+import { storeToRefs } from 'pinia';
 
 const groups = ref({})
+const {chatSession} = storeToRefs(useChatSessionStore())
 
 async function fetchSessions()  {
     let sessions = []
@@ -63,7 +66,7 @@ onMounted(() => {
     <main>
         <section v-for="(group, key) in groups">
             <caption>{{ key }}</caption>
-            <router-link v-for="session in group" :to="'/chat/'+session.session_id" @mouseenter="switchShowDelete(session)" @mouseleave="switchShowDelete(session)">
+            <router-link v-for="session in group" :to="'/chat/'+session.session_id" @mouseenter="switchShowDelete(session)" @mouseleave="switchShowDelete(session)" @click="chatSession=session.session_id">
                 <span class="session-name">{{session.name}}</span>
                 <span class="session-date" v-if="!session.showDelete">{{session.start_time}}</span>
                 <button class="material-icons" @click="deleteSession($event,session.session_id)" v-if="session.showDelete">delete</button>   

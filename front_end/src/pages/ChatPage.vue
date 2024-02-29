@@ -9,14 +9,14 @@ import { onMounted } from 'vue';
 import {useFloating, offset, computePosition} from '@floating-ui/vue';
 import {useMaxChatStore} from '../store/maxChat';
 import {useChatSessionStore} from '../store/chatSession';
+import { useLinkedBooksStore } from '../store/linkedBooks';
 import { storeToRefs } from 'pinia';
 
 const welcomeMessage = { "role": "system", "content": '你好，我是sephirah，请问有什么我可以帮忙的吗？', "end": false}
 const router = useRouter()
-const maxChatStore = useMaxChatStore() 
-const chatSessionStore = useChatSessionStore()
-const {maxChat} = storeToRefs(maxChatStore)
-const {chatSession} = storeToRefs(chatSessionStore)
+const {maxChat} = storeToRefs(useMaxChatStore() )
+const {chatSession} = storeToRefs(useChatSessionStore())
+const {linkedBooks} = storeToRefs(useLinkedBooksStore())
 
 const messages = ref([welcomeMessage])
 const inputText = ref('')
@@ -71,7 +71,8 @@ async function sendMessage(e) {
     const response = await fetch(import.meta.env.VITE_BACKEND_URL + '/api/chat/sessions', {
       method: 'POST',
       body: JSON.stringify({
-        "message": sendText
+        "message": sendText,
+        "linked_books": linkedBooks.value
       })
     })
     const data = await response.json()
@@ -82,7 +83,7 @@ async function sendMessage(e) {
     method: 'POST',
     body: JSON.stringify({
       "message": sendText,
-      "session_id": chatSession.value
+      "session_id": chatSession.value,
     }),
     onmessage(event) {
       const data = JSON.parse(event.data)

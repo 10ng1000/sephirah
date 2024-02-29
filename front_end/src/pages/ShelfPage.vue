@@ -4,12 +4,13 @@ import { useRouter } from 'vue-router';
 import axios from 'axios'
 import Book from '../components/Book.vue';
 import {useChatSessionStore} from '../store/chatSession';
+import { useLinkedBooksStore } from '../store/linkedBooks';
 import { storeToRefs } from 'pinia';
 
 const files = ref(null)
 const books = ref([])
-const store = useChatSessionStore()
-const {chatSession} = storeToRefs(store)
+const {chatSession} = storeToRefs(useChatSessionStore())
+const {linkedBooks} = storeToRefs(useLinkedBooksStore())
 
 const newTitle = computed(() => {
     if (!files.value) {
@@ -37,12 +38,12 @@ async function handleSubmit(){
 }
 
 async function fetchBooks(){
-    let linkedBooks = []
+    linkedBooks.value = []
     if (chatSession.value) {
         axios.get(`api/chat/sessions/${chatSession.value}/books`).then(
             response => {
                 response.data.forEach(book => {
-                    linkedBooks.push(book.id)
+                    linkedBooks.value.push(book.id)
                     console.log(book.id)
                 })
             }
@@ -53,7 +54,7 @@ async function fetchBooks(){
             books.value = response.data
             // 用linkedBooks更新books的isLinked属性
             books.value.forEach(book => {
-                book.isLinked = linkedBooks.includes(book.id)
+                book.isLinked = linkedBooks.value.includes(book.id)
                 console.log(book.isLinked)
             })
 

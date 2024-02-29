@@ -11,12 +11,6 @@ const {chatSession} = storeToRefs(useChatSessionStore())
 //todo 跳转页面
 const drawerLinks = ref([
   {
-  title: '聊天',
-    icon: 'chat',
-    to: '/chat' + (chatSession.value ? `/${chatSession.value}` : ''),
-    color: 'orange'
-  },
-  {
     title: '记忆库',
     icon: 'memory',
     to: '/memory',
@@ -59,8 +53,8 @@ const toggleLeftDrawer = () => {
     <nav style="border-right: 2px solid gainsboro;">
       <header>Sephirah</header>
       <div class="link-container">
-      <DrawerLink v-for="link in drawerLinks" :key="link.title" :title="link.title" :icon="link.icon" :to="link.to"
-        :color="link.color" :active="link.active"/>
+      <DrawerLink :title="'聊天'" :icon="'chat'" :to="'/chat' + (chatSession ? '/' + chatSession : '')" :color="'orange'"/>
+      <DrawerLink v-for="link in drawerLinks" :title="link.title" :icon="link.icon" :to="link.to" :color="link.color"/>
       </div>
     </nav>
     <div class="main-wrapper">

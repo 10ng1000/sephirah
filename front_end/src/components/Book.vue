@@ -96,13 +96,13 @@ function viewBook() {
 
 <template>
     <article @click.self="viewBook()" @mouseenter="isHover = true" @mouseleave="isHover = false">
-        <input type="file" id="edit-book" accept=".txt" @change="handleFileChange" />
-        <input type="checkbox" id="check" v-model="isLink" @change="changeLinkAndSubmit"/>
-        <label class="toggle-button" for="check" ref="toggle" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"></label>
+        <input type="file" :id="'edit-book' + props.id" accept=".txt" @change="handleFileChange" />
+        <input type="checkbox" :id="'check-' + props.id" v-model="isLink" @change="changeLinkAndSubmit"/>
+        <label class="toggle-button" :for="'check-' + props.id" ref="toggle" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false"></label>
         <div class="tooltip" ref="tooltip" :style="floatingStyles" v-if="showTooltip">链接到当前对话</div>
         <div class="document-title">{{ props.title }}</div>
         <div class="button-group">
-            <label class="book-button material-icons" for="edit-book">edit</label>
+            <label class="book-button material-icons" :for="'edit-book' + props.id">edit</label>
             <form method="post" action enctype="multipart/form-data" @submit.prevent="editBook()"
                 v-if="Files != null">
                 <button class="book-button material-icons">upload_file</button>

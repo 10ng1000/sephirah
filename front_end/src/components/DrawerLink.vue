@@ -4,13 +4,7 @@ const props = defineProps({
   title: String,
   icon: String,
   to: String,
-  color: String,
-  active: 
-    {
-        type: Boolean,
-        default: false
-    }
-})
+  color: String})
 
 const activeClass = computed(() => {
   return props.active ? 'sephirah-drawer-item--active' : ''

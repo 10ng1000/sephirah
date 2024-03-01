@@ -11,6 +11,7 @@ const files = ref(null)
 const books = ref([])
 const {chatSession} = storeToRefs(useChatSessionStore())
 const {linkedBooks} = storeToRefs(useLinkedBooksStore())
+const {updateLinkedBooks} = useLinkedBooksStore()
 
 const newTitle = computed(() => {
     if (!files.value) {
@@ -38,26 +39,11 @@ async function handleSubmit(){
 }
 
 async function fetchBooks(){
-    linkedBooks.value = []
-    if (chatSession.value) {
-        axios.get(`api/chat/sessions/${chatSession.value}/books`).then(
-            response => {
-                response.data.forEach(book => {
-                    linkedBooks.value.push(book.id)
-                    console.log(book.id)
-                })
-            }
-        )
-    }
+    //如果有chatSession，就获取chatSession的books
+    if (chatSession.value) updateLinkedBooks(chatSession.value)
     axios.get('api/books/').then(
         response => {
             books.value = response.data
-            // 用linkedBooks更新books的isLinked属性
-            books.value.forEach(book => {
-                book.isLinked = linkedBooks.value.includes(book.id)
-                console.log(book.isLinked)
-            })
-
         }
     )
 }

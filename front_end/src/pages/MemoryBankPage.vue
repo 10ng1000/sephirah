@@ -46,6 +46,7 @@ async function deleteSession(e, session_id) {
                     method: 'DELETE'
                 })
                 groups.value = {}
+                chatSession.value = null
                 fetchSessions()
             }
         },

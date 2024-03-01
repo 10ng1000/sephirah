@@ -96,6 +96,7 @@ function reset() {
   messages.value = [welcomeMessage]
   inputText.value = ''
   chatSession.value = ''
+  chatSession.value = null
   router.replace({path: "/chat"})
 }
 

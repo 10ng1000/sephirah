@@ -57,6 +57,10 @@ class ChatSessionsView(View):
         #把id存入数据库
         session = ChatSession(session_id=session_id, name=name)
         session.save()
+        linked_books = json.loads(request.body).get('linked_books')
+        if linked_books:
+            for book_id in linked_books:
+                session.linked_books.add(book_id)
         return HttpResponse(json.dumps({'session_id': session_id}))
 
     def get(self, request):
@@ -80,10 +84,9 @@ class ChatSessionBooksView(View):
         books = session.linked_books.all()
         return HttpResponse(json.dumps([{'id': str(book.id)} for book in books]))
 
-    def delete(self, request, session_id):
+    def delete(self, request, session_id, book_id):
         # 删除一个大模型对话session的某一本书
         session = ChatSession.objects.get(session_id=session_id)
-        book_id = json.loads(request.body).get('book_id')
         book = session.linked_books.get(id=book_id)
         session.linked_books.remove(book)
         return HttpResponse(json.dumps({'status': 'success'}))

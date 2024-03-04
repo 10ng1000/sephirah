@@ -2,15 +2,19 @@ from langchain_community.document_loaders import TextLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from icecream import ic
+from utils.zhipu_llm import ZhipuEmbedding
+
+FOLDER_PATH = 'data/faiss/'
 
 class FaissVectorStore():
-    def __init__(self, index: str, embeddings):
+
+    def __init__(self, index: str, embeddings = ZhipuEmbedding()):
         self.embeddings = embeddings
         self.index = index
         if index == None:
             raise ValueError("index is needed.")
         try:
-            self.db = FAISS.load_local(index, self.embeddings)
+            self.db = FAISS.load_local(FOLDER_PATH + index, self.embeddings)
         except:
             self.db = None
 
@@ -23,12 +27,16 @@ class FaissVectorStore():
         return docs
 
     def delete(self):
-        '''删除数据库中的所有数据，并保存到本地'''
+        # todo 无法删除
+        '''删除数据库中的所有数据'''
+        if self.db == None:
+            return
         uuids = [self.db.index_to_docstore_id[id] for id in self.db.index_to_docstore_id]
         if len(uuids) == 0:
             return
         self.db.delete(uuids)
-        self.db.save_local(self.index)
+        self.db.save_local(FOLDER_PATH + self.index)
+
         
     def load_document(self, doc_path : str, chunk_size: int = 200, chunk_overlap: int = 0, separator: str = '\n'):
         '''从文档中加载数据覆盖到数据库中，并保存到本地'''
@@ -37,13 +45,13 @@ class FaissVectorStore():
         text_spliter = CharacterTextSplitter(chunk_size=200, chunk_overlap=0, separator='\n')
         raw_doc = TextLoader(doc_path).load()
         documents = text_spliter.split_documents(raw_doc)
+        #todo indexing的任务，异步操作，不阻塞等待
         self.db = FAISS.from_documents(documents, self.embeddings)
-        self.db.save_local(self.index)
+        self.db.save_local(FOLDER_PATH + self.index)
 
 
 
 if __name__ == '__main__':
-    from zhipu_llm import ZhipuEmbedding
     faiss = FaissVectorStore(index = 'test', embeddings = ZhipuEmbedding())
     faiss.load_document(doc_path = '../data/降膜机组调试要点说明书v5.0_V2.txt')
     query="机组调试前要干什么？"

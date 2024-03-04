@@ -60,7 +60,7 @@ function changeLinkAndSubmit() {
 }
 
 function handleFileChange() {
-  const input = document.getElementById('edit-book')
+  const input = document.getElementById('edit-book' + props.id)
   Files.value = input.files
 }
 

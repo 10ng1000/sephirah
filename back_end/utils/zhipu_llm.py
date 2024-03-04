@@ -71,7 +71,6 @@ class ZhipuLLM(LLM):
 class ZhipuLLMWithMemory(ZhipuLLM):
     '''带记忆功能的LLM，redis数据库存储记忆'''
     session_id: str = "default"
-    # history: RedisChatMessageHistory = None
     memory: RedisMemory = None
 
     def __init__(self, session_id: str):
@@ -139,6 +138,9 @@ class ZhipuLLMWithMemory(ZhipuLLM):
     def _identifying_params(self) -> Mapping[str, Any]:
         """Get the identifying parameters."""
         return {"model": self.model}
+
+# class ZhipuLLMWithMemoryAndRetrieval(ZhipuLLMWithMemory):
+
 
 class ZhipuEmbedding(Embeddings):
     model: str = 'embedding-2'

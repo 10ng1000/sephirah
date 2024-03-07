@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.views import View
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseBadRequest, HttpResponseServerError, HttpResponseForbidden
 from django.http import StreamingHttpResponse
-from utils.zhipu_llm import ZhipuLLMWithMemory
+from utils.zhipu_llm import ZhipuLLMWithMemory, ZhipuLLMWithRetrieval
 from chat.models import ChatSession
 from utils.memory import RedisMemory
 import json
@@ -22,6 +22,29 @@ class ChatSseView(View):
                 yield f'data: {json.dumps({"message" : chunk, "end": False})}\n\n'
             yield f'data: {json.dumps({"message" : "", "end": True})}\n\n'
         return StreamingHttpResponse(event_stream(), content_type='text/event-stream')
+
+class ChatRetrievalView(View):
+    def post(self, request):
+        data = json.loads(request.body)
+        message = data.get('message')
+        session_id = data.get('session_id')
+        k = data.get('k')
+        from utils.vector_storage import FaissVectorStore
+        linked_books = ChatSession.objects.get(session_id=session_id).linked_books.all()
+        related_docs = []
+        for book in linked_books:
+            faiss = FaissVectorStore(str(book.id))
+            related_docs.extend(faiss.search_with_score(message))
+        #按照得分排序，取得分最低的k个
+        related_docs.sort(key=lambda x: x[1])
+        related_docs = related_docs[:k]
+        zhipuLLM = ZhipuLLMWithRetrieval(related_docs,session_id, k)
+        def event_stream():
+            for chunk in zhipuLLM.stream(message):
+                yield f'data: {json.dumps({"message" : chunk, "end": False})}\n\n'
+            yield f'data: {json.dumps({"message" : "", "end": True})}\n\n'
+        return StreamingHttpResponse(event_stream(), content_type='text/event-stream')
+        #return HttpResponse(json.dumps({'text': zhipuLLM.invoke(message)}))
 
 class ChatView(View):
     def post(self, request):

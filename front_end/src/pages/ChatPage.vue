@@ -1,34 +1,30 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
-import {useRoute, useRouter} from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import Message from '../components/Message.vue';
-import { Toaster, toast} from 'vue-sonner';
+import { Toaster, toast } from 'vue-sonner';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import autosize from 'autosize';
 import { onMounted } from 'vue';
-import {useFloating, offset, computePosition} from '@floating-ui/vue';
-import {useMaxChatStore} from '../store/maxChat';
-import {useChatSessionStore} from '../store/chatSession';
+import { offset, computePosition, autoPlacement } from '@floating-ui/vue';
+import { useMaxChatStore } from '../store/maxChat';
+import { useChatSessionStore } from '../store/chatSession';
 import { useLinkedBooksStore } from '../store/linkedBooks';
+import { useRagActiveStore } from '../store/ragActive';
 import { storeToRefs } from 'pinia';
 
-const welcomeMessage = { "role": "system", "content": '你好，我是sephirah，请问有什么我可以帮忙的吗？', "end": false}
+const welcomeMessage = { "role": "system", "content": '你好，我是sephirah，请问有什么我可以帮忙的吗？', "end": false }
 const router = useRouter()
-const {maxChat} = storeToRefs(useMaxChatStore() )
-const {chatSession} = storeToRefs(useChatSessionStore())
-const {linkedBooks} = storeToRefs(useLinkedBooksStore())
+const { maxChat } = storeToRefs(useMaxChatStore())
+const { chatSession } = storeToRefs(useChatSessionStore())
+const { linkedBooks } = storeToRefs(useLinkedBooksStore())
+const { ragActive } = storeToRefs(useRagActiveStore())
 
 const messages = ref([welcomeMessage])
 const inputText = ref('')
 
-//展示tooltip
 const showTooltip = ref(false)
-const restart = ref(null)
-const tooltip = ref(null)
-const { floatingStyles } = useFloating(restart, tooltip, {
-  placement: 'top',
-  middleware: [offset(10)]
-})
+const showTooltipRag = ref(false)
 
 const usedChat = computed(() => {
   //计算所有role为assistant的message数量
@@ -77,13 +73,18 @@ async function sendMessage(e) {
     })
     const data = await response.json()
     chatSession.value = data.session_id
-    router.replace({path: `/chat/${chatSession.value}`})
+    router.replace({ path: `/chat/${chatSession.value}` })
   }
-  await fetchEventSource(import.meta.env.VITE_BACKEND_URL + '/api/chat/sse_invoke', {
+  let url = import.meta.env.VITE_BACKEND_URL + '/api/chat/sse_invoke'
+  if (ragActive.value) {
+    url = import.meta.env.VITE_BACKEND_URL + '/api/chat/sse_invoke/rag'
+  }
+  await fetchEventSource(url, {
     method: 'POST',
     body: JSON.stringify({
       "message": sendText,
       "session_id": chatSession.value,
+      "k": 3,
     }),
     onmessage(event) {
       const data = JSON.parse(event.data)
@@ -97,8 +98,13 @@ function reset() {
   inputText.value = ''
   chatSession.value = ''
   chatSession.value = null
-  router.replace({path: "/chat"})
+  router.replace({ path: "/chat" })
 }
+function changeRagMode() {
+  //切换RAG模式
+  ragActive.value = !ragActive.value
+}
+
 
 onMounted(() => {
   autosize(document.querySelectorAll('textarea'));
@@ -117,29 +123,65 @@ onMounted(() => {
         }
       })
   }
-})
 
+  //计算tooltip位置
+  const rag = document.querySelector('.rag-btn')
+  const ragtooltip = document.querySelector('#ragtooltip')
+  const restart = document.querySelector('.new-chat')
+  const refreshtooltip = document.querySelector('#refreshtooltip')
+  computePosition(restart, refreshtooltip, {
+    placement: 'top',
+    middleware: [offset({
+      mainAxis: 50,
+      crossAxis: -50
+    })]
+  }).then(({ x, y }) => {
+    console.log(x, y)
+    Object.assign(refreshtooltip.style, {
+      left: `${x}px`,
+      top: `${y}px`,
+    });
+  });
+
+  computePosition(rag, ragtooltip, {
+    placement: 'top',
+    middleware: [offset({
+      mainAxis: 50,
+      crossAxis: -60
+    })]
+  }).then(({ x, y }) => {
+    console.log(x, y)
+    Object.assign(ragtooltip.style, {
+      left: `${x}px`,
+      top: `${y}px`,
+    });
+  });
+})
 </script>
 
 <template>
-    <main>
-      <div class="message-wrapper">
-      <Message v-for="(message, index) in messages" :content="message.content" :end="message.end" :role="message.role" :remain="index / 2" :total="maxChat" />
-      </div>
-    </main>
-    <footer>
-      <div class="input-container">
-        <textarea autofocus v-model="inputText" type="textarea" @keydown.enter.prevent="sendMessage($event) " max-length="4000"
-          placeholder="请输入你的问题" :disabled="!canChat"/>
-        <button class="material-icons submit-button" @click="sendMessage" :disabled="!canChat">send</button>
-      </div>
-      <button ref="restart" class="material-icons new-chat" @click="reset" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false">restart_alt</button>
-      <div class="tooltip" ref="tooltip" :style="floatingStyles" v-if="showTooltip">开启新记忆</div>
-    </footer>
+  <main>
+    <div class="message-wrapper">
+      <Message v-for="(message, index) in messages" :content="message.content" :end="message.end" :role="message.role"
+        :remain="index / 2" :total="maxChat" />
+    </div>
+  </main>
+  <footer>
+    <div class="input-container">
+      <textarea autofocus v-model="inputText" type="textarea" @keydown.enter.prevent="sendMessage($event)"
+        max-length="4000" placeholder="请输入你的问题" :disabled="!canChat" />
+      <button class="material-icons submit-button" @click="sendMessage" :disabled="!canChat">send</button>
+    </div>
+    <button ref="restart" class="material-icons new-chat" @click="reset" @mouseenter="showTooltip = true"
+      @mouseleave="showTooltip = false">restart_alt</button>
+    <button ref="rag" class="material-icons rag-btn" :class="{ 'rag-active': ragActive }" @click="changeRagMode"
+      @mouseenter="showTooltipRag = true" @mouseleave="showTooltipRag = false">book</button>
+  </footer>
+  <div id="ragtooltip" ref="ragtooltip" class="tooltip" v-show="showTooltipRag">文档问答模式</div>
+  <div id="refreshtooltip" ref="refreshtooltip" class="tooltip" v-show="showTooltip">开启新记忆</div>
 </template>
 
 <style scoped>
-
 main {
   display: flex;
   flex-direction: column;
@@ -198,25 +240,41 @@ textarea {
 }
 
 footer button {
-  margin-left: auto;
-  font-size: 1.5rem;
-  border: none;
-  outline: none;
-  background-color: transparent;
   cursor: pointer;
   color: var(--component);
-}
-
-.new-chat {
   margin-left: 1rem;
   height: 3rem;
   border: var(--border);
   border-radius: var(--border-radius-small);
-  color: pink;
   font-size: 2rem;
 }
 
-.new-chat:hover {
+.submit-button {
+  margin-left: auto;
+  border: none;
+  outline: none;
+  background-color: transparent;
+  color: var(--component);
+  font-size: 1.5rem;
+}
+
+.submit-button:hover {
+  background-color: transparent;
+}
+
+.new-chat {
+  color: pink;
+}
+
+.rag-btn {
+  color: grey;
+}
+
+.rag-active {
+  color: green;
+}
+
+footer button:hover {
   background-color: #f5f5f5;
 }
 </style>

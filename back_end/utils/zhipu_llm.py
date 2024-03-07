@@ -3,10 +3,7 @@ from icecream import ic
 from langchain.llms.base import LLM 
 from langchain.callbacks.manager import CallbackManagerForLLMRun
 from langchain.schema.output import GenerationChunk
-from langchain.embeddings.base import Embeddings
 from typing import Optional, List, Any, Mapping, Iterator, Callable, Dict
-from langchain_community.chat_message_histories import RedisChatMessageHistory, SQLChatMessageHistory
-from langchain_core.messages import ChatMessage
 from utils.memory import RedisMemory
 import re
 #import pretty_errors
@@ -139,25 +136,83 @@ class ZhipuLLMWithMemory(ZhipuLLM):
         """Get the identifying parameters."""
         return {"model": self.model}
 
-# class ZhipuLLMWithMemoryAndRetrieval(ZhipuLLMWithMemory):
+class ZhipuLLMWithRetrieval(ZhipuLLM):
+    similar_docs: List[str] = []
+    #用来存储历史记录，实际上不发送
+    memory: RedisMemory = None
 
+    def __init__(self, docs: List[str], session_id: str, k = 3):
+        super().__init__()
+        self.similar_docs = docs[:k]
+        self.memory = RedisMemory(session_id)
 
-class ZhipuEmbedding(Embeddings):
-    model: str = 'embedding-2'
-
-    def embed_documents(self, texts: List[str]) -> List[List[float]]:
-        texts = list(map(lambda x: x.replace("\n", " "), texts))
-        embeddings = []
-        for text in texts:
-            response = client.embeddings.create(model=self.model, input=text)
-            embeddings.append(response.data[0].embedding)
-        return embeddings
-    
-    def embed_query(self, text: str) -> List[float]:
-        text = text.replace("\n", " ")
-        response = client.embeddings.create(model=self.model, input=text)
-        return response.data[0].embedding
-
+    def _stream(
+        self,
+        prompt: str,
+        stop: Optional[List[str]] = None,
+        run_manager: Optional[CallbackManagerForLLMRun] = None,
+        **kwargs: Any,
+    ) -> Iterator[GenerationChunk]:
+        new_prompt = f'''
+            从文档
+            """
+            {self.similar_docs}
+            """
+            中找问题
+            """
+            {prompt}
+            """
+            的答案，找到答案就仅使用文档语句回答问题，找不到答案就用自身知识回答并且告诉用户该信息不是来自文档。
+            不要复述问题，直接开始回答
+        '''
+        response = client.chat.completions.create(
+            model=self.model,
+            messages=[{"role": "user", "content": new_prompt}],
+            stream=True
+        )
+        history = self.memory.get_history()
+        content = ""
+        for chunk in response:
+            if chunk.choices[0].finish_reason == "stop":
+                self.memory.add_message(role="user", content=prompt)
+                self.memory.add_message(role="assistant", content=content)
+                yield GenerationChunk(
+                    text=''
+                )
+            else:
+                content += chunk.choices[0].delta.content
+                yield GenerationChunk(
+                    text=chunk.choices[0].delta.content
+                )
+        
+        
+    def _call(
+        self,  
+        prompt: str,  
+        stop: Optional[List[str]] = None,  
+        run_manager: Optional[CallbackManagerForLLMRun] = None,  
+        **kwargs: Any,  
+    ) -> str:
+        if stop is not None:  
+            raise ValueError("stop kwargs are not permitted.")
+        new_prompt = f'''
+            从文档
+            """
+            {self.similar_docs}
+            """
+            中找问题
+            """
+            {prompt}
+            """
+            的答案，找到答案就仅使用文档语句回答问题，找不到答案就用自身知识回答并且告诉用户该信息不是来自文档。
+            不要复述问题，直接开始回答
+        '''
+        response = client.chat.completions.create(
+            model=self.model,
+            messages=[{"role": "user", "content": new_prompt}],
+        )
+        content = response.choices[0].message.content
+        return content
 
 
 if __name__ == "__main__":
@@ -165,6 +220,3 @@ if __name__ == "__main__":
     ic(ZhipuLLM.invoke("你好"))
     for chunk in ZhipuLLM.stream("你好，我上一句问了你什么"):
          print(chunk, end="", flush=True)
-    ZhipuEmbedding = ZhipuEmbedding()
-    ic(ZhipuEmbedding.embed_documents(["你好", "你好吗"]))
-    ic(ZhipuEmbedding.embed_query("你好"))

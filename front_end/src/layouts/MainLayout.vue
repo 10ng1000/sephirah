@@ -18,7 +18,7 @@ const drawerLinks = ref([
   },
   {
     title: '知识库',
-    icon: 'book',
+    icon: 'shelves',
     to: '/knowledge',
     color: 'blue'
   },

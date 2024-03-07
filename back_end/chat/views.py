@@ -31,6 +31,9 @@ class ChatRetrievalView(View):
         k = data.get('k')
         from utils.vector_storage import FaissVectorStore
         linked_books = ChatSession.objects.get(session_id=session_id).linked_books.all()
+        if not linked_books:
+            #todo 前端做相应提示
+            return HttpResponseBadRequest("linked_books is required")
         related_docs = []
         for book in linked_books:
             faiss = FaissVectorStore(str(book.id))

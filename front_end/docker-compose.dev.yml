@@ -8,4 +8,4 @@ services:
     network_mode: host
     volumes:
     - '.:/app'
-    command: /bin/sh -c "yarn config set registry http://registry.npm.taobao.org/ && yarn config set registry https://registry.npmjs.org/ && yarn && yarn vite"
+    command: /bin/sh -c "yarn vite"

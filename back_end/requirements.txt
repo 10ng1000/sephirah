@@ -1,5 +1,4 @@
 redis
-celery
 django
 zhipuai
 icecream

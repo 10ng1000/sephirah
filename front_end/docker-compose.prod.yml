@@ -1,0 +1,10 @@
+# for production
+version: '3.7'
+services:
+  sephirah-front:
+    build:
+      context: .
+      target: 'production-stage'
+    network_mode: host
+    restart: always
+    # command: /bin/sh -c "nginx -g daemon off"

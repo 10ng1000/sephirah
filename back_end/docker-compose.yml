@@ -4,7 +4,7 @@ services:
     build: 
       context: .
       target: 'python-develop-stage'
-    command: /bin/sh -c "pip3 install -r requirements.txt && python manage.py runserver 0.0.0.0:617"
+    command: /bin/sh -c "python manage.py runsslserver --certificate cert/ssl.pem --key cert/ssl.key 0.0.0.0:617"
     volumes:
       - .:/app
     restart: always

@@ -9,3 +9,4 @@ UI design referenced from duolingo website
 
 # memory page
 ![QQ截图20240306105856](https://github.com/10ng1000/sephirah/assets/64586167/2ff5c075-d36e-4ffa-b3b0-264276d24bf7)
+

@@ -11,6 +11,10 @@ RUN yarn build
 
 # production stage
 FROM nginx:1.17.5-alpine as production-stage
+RUN rm /etc/nginx/conf.d/default.conf
+COPY ./nginx/nginx.conf /etc/nginx/conf.d
+COPY ./nginx/cert/ssl.pem /etc/nginx/cert/ssl.pem
+COPY ./nginx/cert/ssl.key /etc/nginx/cert/ssl.key
+COPY ./nginx/cert/ssl_passwords.txt /var/lib/nginx/ssl_passwords.txt
 COPY --from=build-stage /app/dist/ /usr/share/nginx/html/
-EXPOSE 80
 ENTRYPOINT ["nginx", "-g", "daemon off;"]

@@ -11,12 +11,15 @@ const pinia = createPinia()
 axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL
 axios.defaults.withCredentials = true
 
-createApp(App).use(pinia).use(router).use(
-  createAuth0({
-    domain: "dev-uhy8wfnt8jw8hxtk.us.auth0.com",
-    clientId: "r9aMvtmuhRE4aOqf5rDlroXIvzAtOKhX",
-    authorizationParams: {
-      redirect_uri: window.location.origin
-    }
-  })
-).mount('#app')
+
+// createApp(App).use(pinia).use(router).use(
+//   createAuth0({
+//     domain: "dev-uhy8wfnt8jw8hxtk.us.auth0.com",
+//     clientId: "r9aMvtmuhRE4aOqf5rDlroXIvzAtOKhX",
+//     authorizationParams: {
+//       redirect_uri: window.location.origin
+//     }
+//   })
+// ).mount('#app')
+
+createApp(App).use(pinia).use(router).mount('#app')

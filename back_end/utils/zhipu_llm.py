@@ -5,6 +5,7 @@ from langchain.callbacks.manager import CallbackManagerForLLMRun
 from langchain.schema.output import GenerationChunk
 from typing import Optional, List, Any, Mapping, Iterator, Callable, Dict
 from utils.memory import RedisMemory
+import json
 import re
 #import pretty_errors
 
@@ -214,6 +215,79 @@ class ZhipuLLMWithRetrieval(ZhipuLLM):
         content = response.choices[0].message.content
         return content
 
+class ZhipuLLMWithMemoryWebSearch(ZhipuLLMWithMemory):
+    def _stream(
+        self,
+        prompt: str,
+        stop: Optional[List[str]] = None,
+        run_manager: Optional[CallbackManagerForLLMRun] = None,
+        **kwargs: Any,
+    ) -> Iterator[GenerationChunk]:
+        # history = [{"role": msg.role, "content": msg.content} for msg in self.history.messages]
+        # ic(history + [{"role": "user", "content": prompt}])
+        history = self.memory.get_history()
+        response = client.chat.completions.create(
+            model=self.model,
+            messages=history + [{"role": "user", "content": prompt}],
+            tools=[{
+                "type": "web_search",
+                "web_search": {
+	                "enable": True, # 禁用：False，启用：True，默认为 True。
+                    "search_result": True
+	            }
+            }],
+            stream=True
+        )
+        content = ""
+        for chunk in response:
+            if chunk.choices[0].finish_reason == "stop":
+                # self.history.add_message(ChatMessage(role="user", content=prompt))
+                # self.history.add_message(ChatMessage(role="assistant", content=content))
+                self.memory.add_message(role="user", content=prompt)
+                self.memory.add_message(role="assistant", content=content)
+                yield GenerationChunk(
+                    text=str(chunk.web_search)
+                )
+            else:
+                content += chunk.choices[0].delta.content
+                yield GenerationChunk(
+                    text=chunk.choices[0].delta.content
+                )
+        
+
+    def _call(
+        self,
+        prompt: str,
+        stop: Optional[List[str]] = None,
+        run_manager: Optional[CallbackManagerForLLMRun] = None,
+        **kwargs: Any,
+    ) -> str:
+        if stop is not None:
+            raise ValueError("stop kwargs are not permitted.")
+        # history = [{"role": msg.role, "content": msg.content} for msg in self.history.messages]
+        #ic(history + [{"role": "user", "content": prompt}])
+        history = self.memory.get_history()
+        response = client.chat.completions.create(
+            model=self.model,
+            messages=history + [{"role": "user", "content": prompt}],
+            tools=[{
+                "type": "web_search",
+                "web_search": {
+	                "enable": True,
+                    "search_result": True # 禁用：False，启用：True，默认为 True。
+	            }
+            }],
+        )
+        content = response.choices[0].message.content
+        # self.history.add_message(ChatMessage(role="user", content=prompt))
+        # self.history.add_message(ChatMessage(role="assistant", content=content))
+        self.memory.add_message(role="user", content=prompt)
+        return content
+
+    @property
+    def _identifying_params(self) -> Mapping[str, Any]:
+        """Get the identifying parameters."""
+        return {"model": self.model}
 
 if __name__ == "__main__":
     ZhipuLLM = ZhipuLLMWithMemory(session_id="测试bot4")

@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.views import View
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseBadRequest, HttpResponseServerError, HttpResponseForbidden
 from django.http import StreamingHttpResponse
-from utils.zhipu_llm import ZhipuLLMWithMemory, ZhipuLLMWithRetrieval
+from utils.zhipu_llm import ZhipuLLMWithMemory, ZhipuLLMWithRetrieval, ZhipuLLMWithMemoryWebSearch
 from chat.models import ChatSession
 from utils.memory import RedisMemory
 import json
@@ -22,7 +22,24 @@ class ChatSseView(View):
                 yield f'data: {json.dumps({"message" : chunk, "end": False})}\n\n'
             yield f'data: {json.dumps({"message" : "", "end": True})}\n\n'
         return StreamingHttpResponse(event_stream(), content_type='text/event-stream')
-
+    
+class ChatWebSearchView(View):
+    def post(self, request):
+        '''sse请求LLM，附带网页搜索功能，在聊天页面使用'''
+        data = json.loads(request.body)
+        message = data.get('message')
+        session_id = data.get('session_id')
+        if not session_id:
+            return HttpResponseBadRequest("session_id is required")
+        zhipuLLM = ZhipuLLMWithMemoryWebSearch(session_id=session_id)
+        def event_stream():
+            for chunk in zhipuLLM.stream(message):
+                if len(chunk) >= 30 and chunk.startswith("[{'title':"):
+                    yield f'data: {json.dumps({"message" : chunk, "end": True})}\n\n'
+                else:
+                    yield f'data: {json.dumps({"message" : chunk, "end": False})}\n\n'
+        return StreamingHttpResponse(event_stream(), content_type='text/event-stream')
+        
 class ChatRetrievalView(View):
     def post(self, request):
         data = json.loads(request.body)

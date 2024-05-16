@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     path('sse_invoke', views.ChatSseView.as_view(), name='chat'),
     path('invoke', views.ChatView.as_view(), name='invoke'),
+    path('sse_invoke/web_search', views.ChatWebSearchView.as_view(), name='chat'),
     path('sse_invoke/rag', views.ChatRetrievalView.as_view(), name='retrieval_invoke'),
     path('sessions', views.ChatSessionsView.as_view(), name='sessions'),
     path('sessions/<str:session_id>', views.ChatSessionView.as_view(), name='session'),

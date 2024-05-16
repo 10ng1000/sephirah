@@ -29,18 +29,35 @@ const thumb_down = ref('thumb_down_off_alt');
 const isThumbUpJumping = ref(false);
 const isThumbDownJumping = ref(false);
 const isScrolling = ref(false);
+const showInfo = ref(false);
 
 const props = defineProps({
   content: String,
   end: Boolean,
   role: String,
   remain: Number,
-  total: Number
+  total: Number,
+  info: String
 });
 
 const isUser = computed(() => {
   return props.role === 'user';
 });
+
+const searchInfo = computed(() => {
+  if(props.info==null)
+    return null
+  else{
+    const newStr = props.info.replace(/'/g, '"');
+    const obj = JSON.parse(newStr);
+    return obj
+  }
+});
+
+const showInfoMessage = computed(() => {
+  return showInfo.value ? '隐藏来源' : '显示来源';
+});
+
 onMounted(() => {
   if (props.content !== null) {
     html.value = marked.parse(props.content);
@@ -95,6 +112,8 @@ function changeThumbDown() {
 <template>
   <article :class="['message-container' ,{userMessage: isUser, aiMessage: !isUser}]">
     <div v-html="html" class="markdown-body"></div>
+    <a v-show="searchInfo!=null" @click="showInfo = !showInfo" href="#">{{ showInfoMessage }}</a>
+    <a v-show="showInfo" v-for="item in searchInfo" :href="item.link" target="_blank">{{`[${item.media}]   ${item.title}`}}</a>
     <div v-if="!isUser">
       <hr />
       <div class="button-container">
@@ -112,6 +131,13 @@ function changeThumbDown() {
 </template>
 
 <style scoped>
+
+a {
+  color: var(--component);
+  text-decoration: none;
+  cursor: pointer;
+}
+
 .message-container {
   margin-top: 2rem;
   border: var(--border);

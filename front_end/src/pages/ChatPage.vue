@@ -13,7 +13,7 @@ import { useLinkedBooksStore } from '../store/linkedBooks';
 import { useRagActiveStore } from '../store/ragActive';
 import { storeToRefs } from 'pinia';
 
-const welcomeMessage = { "role": "system", "content": '你好，我是sephirah，请问有什么我可以帮忙的吗？', "end": false }
+const welcomeMessage = { "role": "system", "content": '你好，我是sephirah，请问有什么我可以帮忙的吗？', "end": false, "info":null}
 const router = useRouter()
 const { maxChat } = storeToRefs(useMaxChatStore())
 const { chatSession } = storeToRefs(useChatSessionStore())
@@ -55,11 +55,11 @@ async function sendMessage(e) {
   if (inputText.value === '') {
     return
   }
-  messages.value.push({ "role": "user", "content": inputText.value })
+  messages.value.push({ "role": "user", "content": inputText.value, "info":null })
   const sendText = inputText.value
-  const newMessage = { "role": "assistant", "content": ' ' }
+  let newMessage = { "role": "assistant", "content": ' ', "end": false, "info":null}
   messages.value.push(newMessage)
-  const lastMessage = messages.value[messages.value.length - 1]
+  let lastMessage = messages.value[messages.value.length - 1]
   inputText.value = ''
   //请求服务器的会话
   if (chatSession.value === null) {
@@ -75,7 +75,7 @@ async function sendMessage(e) {
     chatSession.value = data.session_id
     router.replace({ path: `/chat/${chatSession.value}` })
   }
-  let url = import.meta.env.VITE_BACKEND_URL + '/api/chat/sse_invoke'
+  let url = import.meta.env.VITE_BACKEND_URL + '/api/chat/sse_invoke/web_search'
   if (ragActive.value) {
     url = import.meta.env.VITE_BACKEND_URL + '/api/chat/sse_invoke/rag'
   }
@@ -88,8 +88,11 @@ async function sendMessage(e) {
     }),
     onmessage(event) {
       const data = JSON.parse(event.data)
-      lastMessage.content += data.message
-      lastMessage.end = data.end
+      if (data.end) {
+        lastMessage.end = true
+        lastMessage.info = data.message
+      }
+      else lastMessage.content += data.message
     }
   })
 }
@@ -163,7 +166,7 @@ onMounted(() => {
   <main>
     <div class="message-wrapper">
       <Message v-for="(message, index) in messages" :content="message.content" :end="message.end" :role="message.role"
-        :remain="index / 2" :total="maxChat" />
+        :info="message.info" :remain="index / 2" :total="maxChat" />
     </div>
   </main>
   <footer>

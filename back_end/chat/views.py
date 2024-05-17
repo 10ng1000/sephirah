@@ -2,8 +2,8 @@ from django.shortcuts import render
 from django.views import View
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseBadRequest, HttpResponseServerError, HttpResponseForbidden
 from django.http import StreamingHttpResponse
-from utils.zhipu_llm import ZhipuLLMWithMemory, ZhipuLLMWithRetrieval, ZhipuLLMWithMemoryWebSearch
-from chat.models import ChatSession
+from utils.zhipu_llm import ZhipuLLMWithMemory, ZhipuLLMWithRetrieval, ZhipuLLMWithMemoryWebSearch, ZhipuLLMWithWebSearch
+from chat.models import ChatSession, ChatMessage
 from utils.memory import RedisMemory
 import json
 
@@ -29,12 +29,19 @@ class ChatWebSearchView(View):
         data = json.loads(request.body)
         message = data.get('message')
         session_id = data.get('session_id')
+        #由于是先提取历史，再调用LLM，所以index为历史长度
+        current_index = data.get('index')
         if not session_id:
             return HttpResponseBadRequest("session_id is required")
-        zhipuLLM = ZhipuLLMWithMemoryWebSearch(session_id=session_id)
+        zhipuLLM = ZhipuLLMWithWebSearch(session_id=session_id)
         def event_stream():
             for chunk in zhipuLLM.stream(message):
                 if len(chunk) >= 30 and chunk.startswith("[{'title':"):
+                    #把搜索结果保存到django后端
+                    session = ChatSession.objects.get(session_id=session_id)
+                    ChatMessage(session=session, web_search_results=chunk, index=current_index).save()
+                    #测试是否保存成功，获得session_id为当前id，index为当前index的记录
+                    print(ChatMessage.objects.get(session=session, index=current_index).web_search_results)
                     yield f'data: {json.dumps({"message" : chunk, "end": True})}\n\n'
                 else:
                     yield f'data: {json.dumps({"message" : chunk, "end": False})}\n\n'
@@ -81,7 +88,13 @@ class ChatSessionView(View):
         #获得redis中session对应的聊天记录
         memory = RedisMemory(session_id=session_id)
         history = memory.get_history()
-        return HttpResponse(json.dumps({'session_id': str(session.session_id), 'name': session.name, 'start_time': str(session.start_time), 'history': history, 'books': [{'id': str(book.id), 'title': book.title} for book in books]}))
+        #获得session对应聊天记录web链接
+        messages = ChatMessage.objects.filter(session=session)
+        return HttpResponse(json.dumps({'session_id': str(session.session_id), 'name': session.name,
+                                         'start_time': str(session.start_time), 'history': history,
+                                           'books': [{'id': str(book.id), 'title': book.title} for book in books],
+                                             'web_search': [{'web_search_results': message.web_search_results, 'index': message.index} for message in messages]
+                                           }))
 
     def delete(self, request, session_id):
         # 删除一个大模型对话session

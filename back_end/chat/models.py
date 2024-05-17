@@ -8,3 +8,11 @@ class ChatSession(models.Model):
     name = models.CharField(max_length=100, default='')
     start_time = models.DateTimeField(auto_now_add=True)
     linked_books = models.ManyToManyField(Book)
+
+class ChatMessage(models.Model):
+    session = models.ForeignKey(ChatSession, on_delete=models.CASCADE)
+    web_search_results = models.TextField()
+    index = models.IntegerField()
+    def __str__(self):
+        return self.message
+    

@@ -85,6 +85,7 @@ async function sendMessage(e) {
       "message": sendText,
       "session_id": chatSession.value,
       "k": 3,
+      "index": messages.value.length - 2
     }),
     onmessage(event) {
       const data = JSON.parse(event.data)
@@ -119,9 +120,19 @@ onMounted(() => {
       .then(response => response.json())
       .then(data => {
         messages.value = [welcomeMessage]
-        for (const message of data.history) {
+        for (let i = 0; i < data.history.length; i++) {
           //加上end标记
+          let message = { "role": "assistant", "content": ' ', "end": false, "info":null}
+          message.content = data.history[i].content
+          message.role = data.history[i].role
           message.end = true
+          for (const web_search of data.web_search) {
+            if (web_search.index == i) {
+              message.info = web_search.web_search_results
+              console.log(web_search.web_search_results)
+              console.log(message.info)
+            }
+          }
           messages.value.push(message)
         }
       })
@@ -139,7 +150,6 @@ onMounted(() => {
       crossAxis: -50
     })]
   }).then(({ x, y }) => {
-    console.log(x, y)
     Object.assign(refreshtooltip.style, {
       left: `${x}px`,
       top: `${y}px`,
@@ -153,7 +163,6 @@ onMounted(() => {
       crossAxis: -60
     })]
   }).then(({ x, y }) => {
-    console.log(x, y)
     Object.assign(ragtooltip.style, {
       left: `${x}px`,
       top: `${y}px`,

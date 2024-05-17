@@ -30,7 +30,13 @@ class ZhipuLLM(LLM):
         response = client.chat.completions.create(
             model=self.model,
             messages=[{"role": "user", "content": prompt}],
-            stream=True
+            stream=True,
+            tools=[{
+                "type": "web_search",
+                "web_search": {
+	                "enable": False
+	            }
+            }],
         )
         for chunk in response:  
             if chunk.choices[0].finish_reason == "stop":
@@ -91,7 +97,13 @@ class ZhipuLLMWithMemory(ZhipuLLM):
         response = client.chat.completions.create(
             model=self.model,
             messages=history + [{"role": "user", "content": prompt}],
-            stream=True
+            stream=True,
+            tools=[{
+                "type": "web_search",
+                "web_search": {
+	                "enable": False
+	            }
+            }],
         )
         content = ""
         for chunk in response:
@@ -169,7 +181,13 @@ class ZhipuLLMWithRetrieval(ZhipuLLM):
         response = client.chat.completions.create(
             model=self.model,
             messages=[{"role": "user", "content": new_prompt}],
-            stream=True
+            stream=True,
+            tools=[{
+                "type": "web_search",
+                "web_search": {
+	                "enable": False
+	            }
+            }],
         )
         history = self.memory.get_history()
         content = ""
@@ -216,6 +234,9 @@ class ZhipuLLMWithRetrieval(ZhipuLLM):
         return content
 
 class ZhipuLLMWithMemoryWebSearch(ZhipuLLMWithMemory):
+    def __init__(self, session_id: str):
+        super().__init__(session_id=session_id)
+
     def _stream(
         self,
         prompt: str,
@@ -245,9 +266,15 @@ class ZhipuLLMWithMemoryWebSearch(ZhipuLLMWithMemory):
                 # self.history.add_message(ChatMessage(role="assistant", content=content))
                 self.memory.add_message(role="user", content=prompt)
                 self.memory.add_message(role="assistant", content=content)
-                yield GenerationChunk(
-                    text=str(chunk.web_search)
-                )
+                if (hasattr(chunk, 'web_search')):
+                    yield GenerationChunk(
+                        text=str(chunk.web_search)
+                    )
+                else:
+                    yield GenerationChunk(
+                        text=''
+                    )
+
             else:
                 content += chunk.choices[0].delta.content
                 yield GenerationChunk(
@@ -290,6 +317,9 @@ class ZhipuLLMWithMemoryWebSearch(ZhipuLLMWithMemory):
         return {"model": self.model}
 
 class ZhipuLLMWithWebSearch(ZhipuLLMWithMemory):
+    def __init__(self, session_id: str):
+        super().__init__(session_id=session_id)
+
     def _stream(
         self,
         prompt: str,
@@ -318,9 +348,15 @@ class ZhipuLLMWithWebSearch(ZhipuLLMWithMemory):
                 # self.history.add_message(ChatMessage(role="assistant", content=content))
                 self.memory.add_message(role="user", content=prompt)
                 self.memory.add_message(role="assistant", content=content)
-                yield GenerationChunk(
-                    text=str(chunk.web_search)
-                )
+                #如果chunk有web_search属性，就返回web_search的内容，否则返回空
+                if (hasattr(chunk, 'web_search')):
+                    yield GenerationChunk(
+                        text=str(chunk.web_search)
+                    )
+                else:
+                    yield GenerationChunk(
+                        text=''
+                    )
             else:
                 content += chunk.choices[0].delta.content
                 yield GenerationChunk(

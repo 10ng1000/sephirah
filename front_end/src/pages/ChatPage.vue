@@ -11,6 +11,7 @@ import { useMaxChatStore } from '../store/maxChat';
 import { useChatSessionStore } from '../store/chatSession';
 import { useLinkedBooksStore } from '../store/linkedBooks';
 import { useRagActiveStore } from '../store/ragActive';
+import { useWebActiveStore } from '../store/webActive';
 import { storeToRefs } from 'pinia';
 
 const welcomeMessage = { "role": "system", "content": '你好，我是sephirah，请问有什么我可以帮忙的吗？', "end": false, "info":null}
@@ -19,12 +20,14 @@ const { maxChat } = storeToRefs(useMaxChatStore())
 const { chatSession } = storeToRefs(useChatSessionStore())
 const { linkedBooks } = storeToRefs(useLinkedBooksStore())
 const { ragActive } = storeToRefs(useRagActiveStore())
+const { webActive } = storeToRefs(useWebActiveStore())
 
 const messages = ref([welcomeMessage])
 const inputText = ref('')
 
 const showTooltip = ref(false)
 const showTooltipRag = ref(false)
+const showTooltipWeb = ref(false)
 
 const usedChat = computed(() => {
   //计算所有role为assistant的message数量
@@ -75,9 +78,12 @@ async function sendMessage(e) {
     chatSession.value = data.session_id
     router.replace({ path: `/chat/${chatSession.value}` })
   }
-  let url = import.meta.env.VITE_BACKEND_URL + '/api/chat/sse_invoke/web_search'
+  let url = import.meta.env.VITE_BACKEND_URL + '/api/chat/sse_invoke'
   if (ragActive.value) {
     url = import.meta.env.VITE_BACKEND_URL + '/api/chat/sse_invoke/rag'
+  }
+  else if (webActive.value) {
+    url = import.meta.env.VITE_BACKEND_URL + '/api/chat/sse_invoke/web_search'
   }
   await fetchEventSource(url, {
     method: 'POST',
@@ -107,8 +113,19 @@ function reset() {
 function changeRagMode() {
   //切换RAG模式
   ragActive.value = !ragActive.value
+  if (ragActive.value) {
+    toast.success('已切换至文档问答模式')
+    webActive.value = false
+  }
 }
 
+function changeWebMode() {
+  webActive.value = !webActive.value
+  if (webActive.value) {
+    toast.success('已切换至网页搜索模式')
+    ragActive.value = false
+  }
+}
 
 onMounted(() => {
   autosize(document.querySelectorAll('textarea'));
@@ -129,8 +146,6 @@ onMounted(() => {
           for (const web_search of data.web_search) {
             if (web_search.index == i) {
               message.info = web_search.web_search_results
-              console.log(web_search.web_search_results)
-              console.log(message.info)
             }
           }
           messages.value.push(message)
@@ -168,6 +183,20 @@ onMounted(() => {
       top: `${y}px`,
     });
   });
+
+  const web = document.querySelector('.web-btn')
+  computePosition(web, webtooltip, {
+    placement: 'top',
+    middleware: [offset({
+      mainAxis: 50,
+      crossAxis: -60
+    })]
+  }).then(({ x, y }) => {
+    Object.assign(webtooltip.style, {
+      left: `${x}px`,
+      top: `${y}px`,
+    });
+  });
 })
 </script>
 
@@ -188,9 +217,12 @@ onMounted(() => {
       @mouseleave="showTooltip = false">restart_alt</button>
     <button ref="rag" class="material-icons rag-btn" :class="{ 'rag-active': ragActive }" @click="changeRagMode"
       @mouseenter="showTooltipRag = true" @mouseleave="showTooltipRag = false">book</button>
+    <button ref="web" class="material-icons web-btn" :class="{ 'web-active': webActive }" @click="changeWebMode"
+      @mouseenter="showTooltipWeb = true" @mouseleave="showTooltipWeb = false">language</button>
   </footer>
   <div id="ragtooltip" ref="ragtooltip" class="tooltip" v-show="showTooltipRag">文档问答模式</div>
   <div id="refreshtooltip" ref="refreshtooltip" class="tooltip" v-show="showTooltip">开启新记忆</div>
+  <div id="webtooltip" ref="webtooltip" class="tooltip" v-show="showTooltipWeb">网页搜索模式</div>
 </template>
 
 <style scoped>
@@ -278,12 +310,16 @@ footer button {
   color: pink;
 }
 
-.rag-btn {
+.rag-btn, .web-btn {
   color: grey;
 }
 
 .rag-active {
   color: green;
+}
+
+.web-active {
+  color: blue;
 }
 
 footer button:hover {

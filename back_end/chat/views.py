@@ -41,7 +41,6 @@ class ChatWebSearchView(View):
                     session = ChatSession.objects.get(session_id=session_id)
                     ChatMessage(session=session, web_search_results=chunk, index=current_index).save()
                     #测试是否保存成功，获得session_id为当前id，index为当前index的记录
-                    print(ChatMessage.objects.get(session=session, index=current_index).web_search_results)
                     yield f'data: {json.dumps({"message" : chunk, "end": True})}\n\n'
                 else:
                     yield f'data: {json.dumps({"message" : chunk, "end": False})}\n\n'

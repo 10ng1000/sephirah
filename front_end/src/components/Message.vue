@@ -45,7 +45,7 @@ const isUser = computed(() => {
 });
 
 const searchInfo = computed(() => {
-  if(props.info==null)
+  if(props.info==null || props.info=='')
     return null
   else{
     const newStr = props.info.replace(/'/g, '"');

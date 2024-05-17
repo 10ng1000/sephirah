@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import Message from '../components/Message.vue';
-import { Toaster, toast } from 'vue-sonner';
+import {toast } from 'vue-sonner';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import autosize from 'autosize';
 import { onMounted } from 'vue';
@@ -58,6 +58,17 @@ async function sendMessage(e) {
   if (inputText.value === '') {
     return
   }
+  let url = import.meta.env.VITE_BACKEND_URL + '/api/chat/sse_invoke'
+  if (ragActive.value) {
+    if (linkedBooks.value.length === 0) {
+      toast.error('文档问答模式已开启，请选择文档或者关闭文档问答模式')
+      return
+    }
+    url = import.meta.env.VITE_BACKEND_URL + '/api/chat/sse_invoke/rag'
+  }
+  else if (webActive.value) {
+    url = import.meta.env.VITE_BACKEND_URL + '/api/chat/sse_invoke/web_search'
+  }
   messages.value.push({ "role": "user", "content": inputText.value, "info":null })
   const sendText = inputText.value
   let newMessage = { "role": "assistant", "content": ' ', "end": false, "info":null}
@@ -77,13 +88,6 @@ async function sendMessage(e) {
     const data = await response.json()
     chatSession.value = data.session_id
     router.replace({ path: `/chat/${chatSession.value}` })
-  }
-  let url = import.meta.env.VITE_BACKEND_URL + '/api/chat/sse_invoke'
-  if (ragActive.value) {
-    url = import.meta.env.VITE_BACKEND_URL + '/api/chat/sse_invoke/rag'
-  }
-  else if (webActive.value) {
-    url = import.meta.env.VITE_BACKEND_URL + '/api/chat/sse_invoke/web_search'
   }
   await fetchEventSource(url, {
     method: 'POST',

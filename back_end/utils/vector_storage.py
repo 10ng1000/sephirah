@@ -7,15 +7,15 @@ from utils.embeddings import ZhipuEmbedding
 FOLDER_PATH = 'data/faiss/'
 
 class FaissVectorStore():
-
     def __init__(self, index: str, embeddings = ZhipuEmbedding()):
         self.embeddings = embeddings
         self.index = index
         if index == None:
             raise ValueError("index is needed.")
         try:
-            self.db = FAISS.load_local(FOLDER_PATH + index, self.embeddings)
-        except:
+            self.db = FAISS.load_local(FOLDER_PATH + index, self.embeddings, allow_dangerous_deserialization=True)
+        except Exception as e:
+            print(e)
             self.db = None
 
     def search(self, query: str):
@@ -44,8 +44,10 @@ class FaissVectorStore():
             raise ValueError("doc_path is needed.")
         text_spliter = CharacterTextSplitter(chunk_size=200, chunk_overlap=0, separator='\n')
         raw_doc = TextLoader(doc_path).load()
+        #如果为空
+        if raw_doc == None:
+            return
         documents = text_spliter.split_documents(raw_doc)
-        #todo indexing的任务，异步操作，不阻塞等待
         self.db = FAISS.from_documents(documents, self.embeddings)
         self.db.save_local(FOLDER_PATH + self.index)
 
@@ -55,6 +57,6 @@ if __name__ == '__main__':
     faiss = FaissVectorStore(index = 'test', embeddings = ZhipuEmbedding())
     faiss.load_document(doc_path = '../data/降膜机组调试要点说明书v5.0_V2.txt')
     query="机组调试前要干什么？"
-    # query="今天天气怎么样？"
+    # query="今天天气怎么 样？"
     ic(faiss.search_with_score(query))
     faiss.delete()

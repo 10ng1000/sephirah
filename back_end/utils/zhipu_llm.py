@@ -7,10 +7,12 @@ from typing import Optional, List, Any, Mapping, Iterator, Callable, Dict
 from utils.memory import RedisMemory
 import json
 import re
-#import pretty_errors
+from dotenv import load_dotenv
+import os
 
-#todo 以后改成secret
-client = ZhipuAI(api_key="b1f62968c571a91d5cbf0deb26853e75.O8kJveyevNPTzpZo")
+load_dotenv()
+api_key = os.environ.get("API_KEY")
+client = ZhipuAI(api_key=api_key)
 
 class ZhipuLLM(LLM):
     '''不带记忆功能的LLMS'''

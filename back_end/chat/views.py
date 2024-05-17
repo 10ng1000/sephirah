@@ -59,6 +59,7 @@ class ChatRetrievalView(View):
             return HttpResponseBadRequest("linked_books is required")
         related_docs = []
         for book in linked_books:
+            print(book.id)
             faiss = FaissVectorStore(str(book.id))
             related_docs.extend(faiss.search_with_score(message))
         #按照得分排序，取得分最低的k个

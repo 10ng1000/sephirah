@@ -7,3 +7,4 @@ langchain
 faiss-cpu
 django-cors-headers
 django-sslserver
+python-dotenv

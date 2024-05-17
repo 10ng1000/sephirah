@@ -5,6 +5,7 @@ import axios from 'axios'
 import Book from '../components/Book.vue';
 import {useChatSessionStore} from '../store/chatSession';
 import { useLinkedBooksStore } from '../store/linkedBooks';
+import { Toaster, toast } from 'vue-sonner';
 import { storeToRefs } from 'pinia';
 
 const files = ref(null)
@@ -30,8 +31,12 @@ function handleFileChange() {
 async function handleSubmit(){
     const formData = new FormData()
     formData.append("file", files.value[0])
+    toast.info('正在上传文档，请稍等')
+    //将按钮设为不可点击
+    document.querySelector('.book-button').disabled = true
     axios.post('api/books/',formData).then(
         () => {
+            //提示用户稍等
             fetchBooks()
             files.value = null
         }

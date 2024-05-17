@@ -24,7 +24,7 @@ class ZhipuLLM(LLM):
         if role is None:
             self.role = "名字是Sephirah"
         else:
-            self.role = "名字是Sephirah，另外以后面的内容为优先设定：" + role
+            self.role = "名字是Sephirah，另外：" + role
 
     @property
     def _llm_type(self) -> str:
@@ -37,7 +37,7 @@ class ZhipuLLM(LLM):
             run_manager: Optional[CallbackManagerForLLMRun] = None,  
             **kwargs: Any,  
     ) -> Iterator[GenerationChunk]:  
-        new_prompt = f'''你的预先设定是{self.role}。{prompt}'''
+        new_prompt = f'''你的预先设定是{self.role}。接下来是我的话：{prompt}'''
         response = client.chat.completions.create(
             model=self.model,
             messages=[{"role": "user", "content": new_prompt}],
@@ -107,7 +107,7 @@ class ZhipuLLMWithMemory(ZhipuLLM):
         history = self.memory.get_history()
         new_prompt = ''
         if len(history) == 0:
-            new_prompt = f'''你的预先设定是{self.role}。{prompt}'''
+            new_prompt = f'''你的预先设定是{self.role}。接下来是我的话：{prompt}'''
         else:
             new_prompt = prompt
         response = client.chat.completions.create(
@@ -170,8 +170,8 @@ class ZhipuLLMWithRetrieval(ZhipuLLM):
     #用来存储历史记录，实际上不发送
     memory: RedisMemory = None
 
-    def __init__(self, docs: List[str], session_id: str, k = 3):
-        super().__init__()
+    def __init__(self, docs: List[str], session_id: str, k = 3, role=None):
+        super().__init__(role)
         self.similar_docs = docs[:k]
         self.memory = RedisMemory(session_id)
 
@@ -266,7 +266,7 @@ class ZhipuLLMWithMemoryWebSearch(ZhipuLLMWithMemory):
         history = self.memory.get_history()
         new_prompt = ''
         if len(history) == 0:
-            new_prompt = f'''你的预先设定是{self.role}。{prompt}'''
+            new_prompt = f'''你的预先设定是{self.role}。接下来是我的话：{prompt}'''
         else:
             new_prompt = prompt
         response = client.chat.completions.create(
@@ -354,7 +354,7 @@ class ZhipuLLMWithWebSearch(ZhipuLLMWithMemory):
         new_prompt = ''
         history = self.memory.get_history()
         if len(history) == 0:
-            new_prompt = f'''你的预先设定是{self.role}。{prompt}'''
+            new_prompt = f'''你的预先设定是{self.role}。接下来是我的话：{prompt}'''
         else:
             new_prompt = prompt
         response = client.chat.completions.create(

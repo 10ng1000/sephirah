@@ -39,7 +39,8 @@ class ChatSseView(View):
         session_id = data.get('session_id')
         if not session_id:
             return HttpResponseBadRequest("session_id is required")
-        zhipuLLM = ZhipuLLMWithMemory(session_id=session_id)
+        role_setting = RoleSetting.objects.all()[0].setting
+        zhipuLLM = ZhipuLLMWithMemory(session_id=session_id, role=role_setting)
         def event_stream():
             for chunk in zhipuLLM.stream(message):
                 yield f'data: {json.dumps({"message" : chunk, "end": False})}\n\n'
@@ -56,7 +57,8 @@ class ChatWebSearchView(View):
         current_index = data.get('index')
         if not session_id:
             return HttpResponseBadRequest("session_id is required")
-        zhipuLLM = ZhipuLLMWithWebSearch(session_id=session_id)
+        role_setting = RoleSetting.objects.all()[0].setting
+        zhipuLLM = ZhipuLLMWithWebSearch(session_id=session_id, role=role_setting)
         def event_stream():
             for chunk in zhipuLLM.stream(message):
                 if len(chunk) >= 30 and chunk.startswith("[{'title':"):
@@ -78,7 +80,6 @@ class ChatRetrievalView(View):
         from utils.vector_storage import FaissVectorStore
         linked_books = ChatSession.objects.get(session_id=session_id).linked_books.all()
         if not linked_books:
-            #todo 前端做相应提示
             return HttpResponseBadRequest("linked_books is required")
         related_docs = []
         for book in linked_books:
@@ -88,7 +89,8 @@ class ChatRetrievalView(View):
         #按照得分排序，取得分最低的k个
         related_docs.sort(key=lambda x: x[1])
         related_docs = related_docs[:k]
-        zhipuLLM = ZhipuLLMWithRetrieval(related_docs,session_id, k)
+        role_setting = RoleSetting.objects.all()[0].setting
+        zhipuLLM = ZhipuLLMWithRetrieval(related_docs,session_id, k, role=role_setting)
         def event_stream():
             for chunk in zhipuLLM.stream(message):
                 yield f'data: {json.dumps({"message" : chunk, "end": False})}\n\n'

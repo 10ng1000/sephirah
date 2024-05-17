@@ -4,6 +4,7 @@ from django.http import HttpResponse, HttpResponseNotFound, HttpResponseBadReque
 from django.http import StreamingHttpResponse
 from utils.zhipu_llm import ZhipuLLMWithMemory, ZhipuLLMWithRetrieval, ZhipuLLMWithMemoryWebSearch, ZhipuLLMWithWebSearch
 from chat.models import ChatSession, ChatMessage
+from chat.models import RoleSetting
 from utils.memory import RedisMemory
 import json
 
@@ -11,7 +12,6 @@ class ChatRoleSettingView(View):
     def post(self, request):
         data = json.loads(request.body)
         setting = data.get('setting')
-        from chat.models import RoleSetting
         #删除原有的记录
         if RoleSetting.objects.all():
             RoleSetting.objects.all().delete()
@@ -20,9 +20,15 @@ class ChatRoleSettingView(View):
         return HttpResponse(json.dumps({'status': 'success'}))
     
     def get(self, request):
-        from chat.models import RoleSetting
         role_setting = RoleSetting.objects.all()
-        return HttpResponse(json.dumps([{'setting': role.setting} for role in role_setting]))
+        if not role_setting:
+            return HttpResponse(json.dumps({'setting': None}))
+        return HttpResponse(json.dumps({'setting': role_setting[0].setting}))
+
+    def delete(self, request):
+        if RoleSetting.objects.all():
+            RoleSetting.objects.all().delete()
+        return HttpResponse(json.dumps({'status': 'success'}))
 
 # Create your views here.
 class ChatSseView(View):

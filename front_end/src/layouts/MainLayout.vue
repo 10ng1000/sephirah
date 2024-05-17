@@ -23,17 +23,17 @@ const drawerLinks = ref([
     color: 'blue'
   },
   {
-    title: '设置',
+    title: '角色',
     icon: 'settings',
-    to: '/settings',
+    to: '/role',
     color: 'green'
-  }
+  },
   // {
-  //   title: '知识图谱',
-  //   icon: 'hub',
-  //   to: '/graph',
+  //   title: '设置',
+  //   icon: 'settings',
+  //   to: '/settings',
   //   color: 'green'
-  // },
+  // }
   // {
   //   title: '提取',
   //   icon: 'sync',

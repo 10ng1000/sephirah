@@ -77,12 +77,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.q-page {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-center;
-}
 
 main {
     display: flex;

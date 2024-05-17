@@ -39,6 +39,11 @@ const routes = [
     children: [{ path: "", component: () => import("../pages/BookPage.vue") }],
   },
   {
+    path:"/role",
+    component: () => import("../layouts/MainLayout.vue"),
+    children: [{ path: "", component: () => import("../pages/RoleSettingPage.vue") }],
+  },
+  {
     path: "/:catchAll(.*)*",
     component: () => import("../pages/ErrorNotFound.vue")
   }

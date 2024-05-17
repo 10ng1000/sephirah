@@ -17,6 +17,14 @@ client = ZhipuAI(api_key=api_key)
 class ZhipuLLM(LLM):
     '''不带记忆功能的LLMS'''
     model: str = 'glm-4'
+    role: str = None
+
+    def __init__(self, role: str = None):
+        super().__init__()
+        if role is None:
+            self.role = "名字是Sephirah"
+        else:
+            self.role = "名字是Sephirah，另外以后面的内容为优先设定：" + role
 
     @property
     def _llm_type(self) -> str:
@@ -29,9 +37,10 @@ class ZhipuLLM(LLM):
             run_manager: Optional[CallbackManagerForLLMRun] = None,  
             **kwargs: Any,  
     ) -> Iterator[GenerationChunk]:  
+        new_prompt = f'''你的预先设定是{self.role}。{prompt}'''
         response = client.chat.completions.create(
             model=self.model,
-            messages=[{"role": "user", "content": prompt}],
+            messages=[{"role": "user", "content": new_prompt}],
             stream=True,
             tools=[{
                 "type": "web_search",
@@ -79,8 +88,8 @@ class ZhipuLLMWithMemory(ZhipuLLM):
     session_id: str = "default"
     memory: RedisMemory = None
 
-    def __init__(self, session_id: str):
-        super().__init__()
+    def __init__(self, session_id: str, role: str = None):
+        super().__init__(role)
         self.session_id = session_id
         #todo 以后改成环境变量
         # self.history = RedisChatMessageHistory(session_id, url="redis://localhost:6379")
@@ -96,9 +105,14 @@ class ZhipuLLMWithMemory(ZhipuLLM):
         # history = [{"role": msg.role, "content": msg.content} for msg in self.history.messages]
         # ic(history + [{"role": "user", "content": prompt}])
         history = self.memory.get_history()
+        new_prompt = ''
+        if len(history) == 0:
+            new_prompt = f'''你的预先设定是{self.role}。{prompt}'''
+        else:
+            new_prompt = prompt
         response = client.chat.completions.create(
             model=self.model,
-            messages=history + [{"role": "user", "content": prompt}],
+            messages=history + [{"role": "user", "content": new_prompt}],
             stream=True,
             tools=[{
                 "type": "web_search",
@@ -169,6 +183,7 @@ class ZhipuLLMWithRetrieval(ZhipuLLM):
         **kwargs: Any,
     ) -> Iterator[GenerationChunk]:
         new_prompt = f'''
+            你的设定是{self.role}，
             从文档
             """
             {self.similar_docs}
@@ -249,9 +264,14 @@ class ZhipuLLMWithMemoryWebSearch(ZhipuLLMWithMemory):
         # history = [{"role": msg.role, "content": msg.content} for msg in self.history.messages]
         # ic(history + [{"role": "user", "content": prompt}])
         history = self.memory.get_history()
+        new_prompt = ''
+        if len(history) == 0:
+            new_prompt = f'''你的预先设定是{self.role}。{prompt}'''
+        else:
+            new_prompt = prompt
         response = client.chat.completions.create(
             model=self.model,
-            messages=history + [{"role": "user", "content": prompt}],
+            messages=history + [{"role": "user", "content": new_prompt}],
             tools=[{
                 "type": "web_search",
                 "web_search": {
@@ -331,9 +351,15 @@ class ZhipuLLMWithWebSearch(ZhipuLLMWithMemory):
     ) -> Iterator[GenerationChunk]:
         # history = [{"role": msg.role, "content": msg.content} for msg in self.history.messages]
         # ic(history + [{"role": "user", "content": prompt}])
+        new_prompt = ''
+        history = self.memory.get_history()
+        if len(history) == 0:
+            new_prompt = f'''你的预先设定是{self.role}。{prompt}'''
+        else:
+            new_prompt = prompt
         response = client.chat.completions.create(
             model=self.model,
-            messages=[{"role": "user", "content": prompt}],
+            messages=[{"role": "user", "content": new_prompt}],
             tools=[{
                 "type": "web_search",
                 "web_search": {

@@ -7,6 +7,23 @@ from chat.models import ChatSession, ChatMessage
 from utils.memory import RedisMemory
 import json
 
+class ChatRoleSettingView(View):
+    def post(self, request):
+        data = json.loads(request.body)
+        setting = data.get('setting')
+        from chat.models import RoleSetting
+        #删除原有的记录
+        if RoleSetting.objects.all():
+            RoleSetting.objects.all().delete()
+        role_setting = RoleSetting(setting=setting)
+        role_setting.save()
+        return HttpResponse(json.dumps({'status': 'success'}))
+    
+    def get(self, request):
+        from chat.models import RoleSetting
+        role_setting = RoleSetting.objects.all()
+        return HttpResponse(json.dumps([{'setting': role.setting} for role in role_setting]))
+
 # Create your views here.
 class ChatSseView(View):
     def post(self, request):

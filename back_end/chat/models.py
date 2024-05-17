@@ -15,4 +15,8 @@ class ChatMessage(models.Model):
     index = models.IntegerField()
     def __str__(self):
         return self.message
-    
+
+class RoleSetting(models.Model):
+    setting = models.TextField()
+    def __str__(self):
+        return self.setting

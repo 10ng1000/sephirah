@@ -9,5 +9,6 @@ urlpatterns = [
     path('sessions', views.ChatSessionsView.as_view(), name='sessions'),
     path('sessions/<str:session_id>', views.ChatSessionView.as_view(), name='session'),
     path('sessions/<str:session_id>/books', views.ChatSessionBooksView.as_view(), name='session_books'),
-    path('sessions/<str:session_id>/books/<str:book_id>', views.ChatSessionBooksView.as_view(), name='session_book')
+    path('sessions/<str:session_id>/books/<str:book_id>', views.ChatSessionBooksView.as_view(), name='session_book'),
+    path('role', views.ChatRoleSettingView.as_view(), name='role_setting'),
 ]

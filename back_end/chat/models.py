@@ -12,6 +12,7 @@ class ChatSession(models.Model):
 class ChatMessage(models.Model):
     session = models.ForeignKey(ChatSession, on_delete=models.CASCADE)
     web_search_results = models.TextField()
+    is_retrieval = models.BooleanField(default=False)
     index = models.IntegerField()
     def __str__(self):
         return self.message

@@ -7,6 +7,9 @@ from chat.models import ChatSession, ChatMessage
 from chat.models import RoleSetting
 from utils.memory import RedisMemory
 import json
+from dotenv import load_dotenv
+import os
+
 
 class ChatRoleSettingView(View):
     def post(self, request):
@@ -39,7 +42,10 @@ class ChatSseView(View):
         session_id = data.get('session_id')
         if not session_id:
             return HttpResponseBadRequest("session_id is required")
-        role_setting = RoleSetting.objects.all()[0].setting
+        if RoleSetting.objects.all():
+            role_setting = RoleSetting.objects.all()[0].setting
+        else:
+            role_setting = None
         zhipuLLM = ZhipuLLMWithMemory(session_id=session_id, role=role_setting)
         def event_stream():
             for chunk in zhipuLLM.stream(message):
@@ -57,7 +63,10 @@ class ChatWebSearchView(View):
         current_index = data.get('index')
         if not session_id:
             return HttpResponseBadRequest("session_id is required")
-        role_setting = RoleSetting.objects.all()[0].setting
+        if RoleSetting.objects.all():
+            role_setting = RoleSetting.objects.all()[0].setting
+        else:
+            role_setting = None
         zhipuLLM = ZhipuLLMWithWebSearch(session_id=session_id, role=role_setting)
         def event_stream():
             for chunk in zhipuLLM.stream(message):
@@ -66,7 +75,7 @@ class ChatWebSearchView(View):
                     session = ChatSession.objects.get(session_id=session_id)
                     ChatMessage(session=session, web_search_results=chunk, index=current_index).save()
                     #测试是否保存成功，获得session_id为当前id，index为当前index的记录
-                    yield f'data: {json.dumps({"message" : chunk, "end": True})}\n\n'
+                    yield f'data: {json.dumps({"message" : chunk, "end": True, "is_retrieval":False})}\n\n'
                 else:
                     yield f'data: {json.dumps({"message" : chunk, "end": False})}\n\n'
         return StreamingHttpResponse(event_stream(), content_type='text/event-stream')
@@ -76,7 +85,8 @@ class ChatRetrievalView(View):
         data = json.loads(request.body)
         message = data.get('message')
         session_id = data.get('session_id')
-        k = data.get('k')
+        current_index = data.get('index')
+        k = int(os.getenv('RETRIEVAL_K'))
         from utils.vector_storage import FaissVectorStore
         linked_books = ChatSession.objects.get(session_id=session_id).linked_books.all()
         if not linked_books:
@@ -89,12 +99,20 @@ class ChatRetrievalView(View):
         #按照得分排序，取得分最低的k个
         related_docs.sort(key=lambda x: x[1])
         related_docs = related_docs[:k]
-        role_setting = RoleSetting.objects.all()[0].setting
+        #如果有role设置，使用role设置
+        if RoleSetting.objects.all():
+            role_setting = RoleSetting.objects.all()[0].setting
+        else:
+            role_setting = None
         zhipuLLM = ZhipuLLMWithRetrieval(related_docs,session_id, k, role=role_setting)
         def event_stream():
             for chunk in zhipuLLM.stream(message):
                 yield f'data: {json.dumps({"message" : chunk, "end": False})}\n\n'
-            yield f'data: {json.dumps({"message" : "", "end": True})}\n\n'
+            doc = [{'title': document.page_content, 'media': document.metadata['source'].split('/')[-1].split('.')[0]} for document, score in related_docs]
+            #将结果保存到后端
+            session = ChatSession.objects.get(session_id=session_id)
+            ChatMessage(session=session, web_search_results=json.dumps(doc), index=current_index, is_retrieval=True).save()
+            yield f'data: {json.dumps({"message" : str(doc), "end": True, "is_retrieval": True})}\n\n'
         return StreamingHttpResponse(event_stream(), content_type='text/event-stream')
         #return HttpResponse(json.dumps({'text': zhipuLLM.invoke(message)}))
 
@@ -118,7 +136,8 @@ class ChatSessionView(View):
         return HttpResponse(json.dumps({'session_id': str(session.session_id), 'name': session.name,
                                          'start_time': str(session.start_time), 'history': history,
                                            'books': [{'id': str(book.id), 'title': book.title} for book in books],
-                                             'web_search': [{'web_search_results': message.web_search_results, 'index': message.index} for message in messages]
+                                             'web_search': [{'web_search_results': message.web_search_results, 'index': message.index,
+                                                              'is_retrieval': message.is_retrieval} for message in messages]
                                            }))
 
     def delete(self, request, session_id):

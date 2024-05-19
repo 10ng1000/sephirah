@@ -15,8 +15,8 @@ api_key = os.environ.get("API_KEY")
 client = ZhipuAI(api_key=api_key)
 
 class ZhipuLLM(LLM):
-    '''不带记忆功能的LLMS'''
-    model: str = 'glm-4'
+    '''不带记忆功能的LLM'''
+    model: str = 'glm-3-turbo'
     role: str = None
 
     def __init__(self, role: str = None):
@@ -251,8 +251,8 @@ class ZhipuLLMWithRetrieval(ZhipuLLM):
         return content
 
 class ZhipuLLMWithMemoryWebSearch(ZhipuLLMWithMemory):
-    def __init__(self, session_id: str):
-        super().__init__(session_id=session_id)
+    def __init__(self, session_id: str, role=None):
+        super().__init__(session_id=session_id, role=role)
 
     def _stream(
         self,
@@ -339,8 +339,8 @@ class ZhipuLLMWithMemoryWebSearch(ZhipuLLMWithMemory):
         return {"model": self.model}
 
 class ZhipuLLMWithWebSearch(ZhipuLLMWithMemory):
-    def __init__(self, session_id: str):
-        super().__init__(session_id=session_id)
+    def __init__(self, session_id: str, role=None):
+        super().__init__(session_id=session_id, role=role)
 
     def _stream(
         self,

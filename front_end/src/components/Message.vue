@@ -37,7 +37,8 @@ const props = defineProps({
   role: String,
   remain: Number,
   total: Number,
-  info: String
+  info: String,
+  isretrieval: Boolean
 });
 
 const isUser = computed(() => {
@@ -113,7 +114,8 @@ function changeThumbDown() {
   <article :class="['message-container' ,{userMessage: isUser, aiMessage: !isUser}]">
     <div v-html="html" class="markdown-body"></div>
     <a v-show="searchInfo!=null" @click="showInfo = !showInfo" href="#">{{ showInfoMessage }}</a>
-    <a v-show="showInfo" v-for="item in searchInfo" :href="item.link" target="_blank">{{`[${item.media}]   ${item.title}`}}</a>
+    <a v-show="showInfo && !isretrieval" v-for="item in searchInfo" :href="item.link" target="_blank">{{`[${item.media}]   ${item.title}`}}</a>
+    <div class="cite" v-show="showInfo && isretrieval" v-for="item in searchInfo">{{`[${item.media}]   ${item.title}`}}</div>
     <div v-if="!isUser">
       <hr />
       <div class="button-container">
@@ -122,7 +124,6 @@ function changeThumbDown() {
         }}</button>
         <button :class="['material-icons', {'copy-btn': !end}]" @click="copyText">content_copy</button>
         <span class="remain-text" v-if="end">
-          <!-- todo 增加进度条 -->
           {{ remain }}/{{ total }}
         </span>
       </div>
@@ -131,6 +132,11 @@ function changeThumbDown() {
 </template>
 
 <style scoped>
+
+.cite{
+  margin-top: 0.5rem;
+  font-family: Alice;
+}
 
 a {
   color: var(--component);

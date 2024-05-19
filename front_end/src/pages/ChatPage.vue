@@ -71,7 +71,7 @@ async function sendMessage(e) {
   }
   messages.value.push({ "role": "user", "content": inputText.value, "info":null })
   const sendText = inputText.value
-  let newMessage = { "role": "assistant", "content": ' ', "end": false, "info":null}
+  let newMessage = { "role": "assistant", "content": ' ', "end": false, "info":null, "isRetrieval": false}
   messages.value.push(newMessage)
   let lastMessage = messages.value[messages.value.length - 1]
   inputText.value = ''
@@ -102,6 +102,7 @@ async function sendMessage(e) {
       if (data.end) {
         lastMessage.end = true
         lastMessage.info = data.message
+        lastMessage.isRetrieval = data.is_retrieval
       }
       else lastMessage.content += data.message
     }
@@ -150,11 +151,15 @@ onMounted(() => {
           for (const web_search of data.web_search) {
             if (web_search.index == i) {
               message.info = web_search.web_search_results
+              message.isRetrieval = web_search.is_retrieval
             }
           }
           messages.value.push(message)
         }
       })
+    //将页面滚动到底部
+    const main = document.querySelector('main')
+    main.scrollTop = main.scrollHeight
   }
 
   //计算tooltip位置
@@ -208,7 +213,7 @@ onMounted(() => {
   <main>
     <div class="message-wrapper">
       <Message v-for="(message, index) in messages" :content="message.content" :end="message.end" :role="message.role"
-        :info="message.info" :remain="index / 2" :total="maxChat" />
+        :info="message.info" :isretrieval="message.isRetrieval" :remain="index / 2" :total="maxChat" />
     </div>
   </main>
   <footer>

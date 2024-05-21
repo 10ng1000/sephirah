@@ -1,5 +1,5 @@
 from langchain_community.document_loaders import TextLoader
-from langchain.text_splitter import CharacterTextSplitter
+from langchain.text_splitter import CharacterTextSplitter, RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from icecream import ic
 from utils.embeddings import ZhipuEmbedding
@@ -38,11 +38,12 @@ class FaissVectorStore():
         self.db.save_local(FOLDER_PATH + self.index)
 
         
-    def load_document(self, doc_path : str, chunk_size: int = 200, chunk_overlap: int = 0, separator: str = '\n'):
+    def load_document(self, doc_path : str, chunk_size: int = 200, chunk_overlap: int = 40, separator: str = '。'):
         '''从文档中加载数据覆盖到数据库中，并保存到本地'''
         if doc_path == None:
             raise ValueError("doc_path is needed.")
-        text_spliter = CharacterTextSplitter(chunk_size=200, chunk_overlap=0, separator='\n')
+        # text_spliter = CharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap, separator=separator)
+        text_spliter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap, separators=["\n\n", "\n","。","，"," ",""])
         raw_doc = TextLoader(doc_path).load()
         #如果为空
         if raw_doc == None:

@@ -16,7 +16,7 @@ client = ZhipuAI(api_key=api_key)
 
 class ZhipuLLM(LLM):
     '''不带记忆功能的LLM'''
-    model: str = 'glm-3-turbo'
+    model: str = 'glm-4'
     role: str = None
 
     def __init__(self, role: str = None):

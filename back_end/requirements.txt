@@ -4,6 +4,7 @@ zhipuai
 icecream
 pretty-errors
 langchain
+langchain_community
 faiss-cpu
 django-cors-headers
 django-sslserver

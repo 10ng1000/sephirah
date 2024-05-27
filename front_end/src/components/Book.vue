@@ -65,7 +65,7 @@ function handleFileChange() {
 }
 
 async function editBook() {
-  toast.info('正在上传文档，请稍等')
+  toast.info('正在处理文档，请稍等')
   //将按钮设为不可点击
   document.querySelector('.book-button').disabled = true
   const formData = new FormData()

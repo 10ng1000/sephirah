@@ -27,12 +27,14 @@ const book = ref({
     text: ''
 })
 const edit = ref(route.path.endsWith('edit'))
+const html = ref(null)
 
 function getBookText(bookId) {
     axios.get(`api/books/${String(bookId)}`).then(
         response => {
-            console.log(response.data.text)
             book.value = response.data
+            console.log(book.value.text)
+            html.value = marked.parse(book.value.text)
         }
     )
 }
@@ -49,7 +51,7 @@ onMounted(()=>{
         <article>
             <button class="back-button material-icons" @click="router.back()">arrow_back</button>
             <h1>{{ book.title }}</h1>
-            <div v-if="!edit" class="markdown-body" v-html="marked.parse(book.text)"></div>
+            <div v-html="html" class="markdown-body"></div>
         </article>
     </main>
 </template>

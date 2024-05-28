@@ -51,7 +51,7 @@ const toggleLeftDrawer = () => {
 <template>
   <div class="page-wrapper">
     <nav style="border-right: 2px solid gainsboro;">
-      <header>Sephirah</header>
+      <img src="../assets/logo.svg" alt="Description" width="100" height="100">
       <div class="link-container">
       <DrawerLink :title="'聊天'" :icon="'chat'" :to="'/chat' + (chatSession ? '/' + chatSession : '')" :color="'orange'"/>
       <DrawerLink v-for="link in drawerLinks" :title="link.title" :icon="link.icon" :to="link.to" :color="link.color"/>
@@ -76,12 +76,12 @@ nav {
   align-items: center;
   justify-content: flex-start;
 }
-header {
-  margin-top: 1rem;
-  color: #58cc02;
-  font-family: "Alice";
+img {
+  margin-top: 2rem;
+  /* color: #58cc02; */
+  /* font-family: "Alice";
   font-size: 2.5rem;
-  font-weight: bold;
+  font-weight: bold; */
 }
 @media (max-width: 768px) {
   header {
@@ -101,7 +101,7 @@ header {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  margin-top: 1rem;
+  margin-top: 2rem;
   width: 100%;
 }
 </style>

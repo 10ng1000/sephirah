@@ -14,7 +14,7 @@ import { useRagActiveStore } from '../store/ragActive';
 import { useWebActiveStore } from '../store/webActive';
 import { storeToRefs } from 'pinia';
 
-const welcomeMessage = { "role": "system", "content": '你好，我是sephirah，请问有什么我可以帮忙的吗？', "end": false, "info":null}
+const welcomeMessage = { "role": "system", "content": '你好，我是小冰，请问有什么我可以帮忙的吗？', "end": false, "info":null}
 const router = useRouter()
 const { maxChat } = storeToRefs(useMaxChatStore())
 const { chatSession } = storeToRefs(useChatSessionStore())

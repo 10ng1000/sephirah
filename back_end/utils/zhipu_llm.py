@@ -22,9 +22,9 @@ class ZhipuLLM(LLM):
     def __init__(self, role: str = None):
         super().__init__()
         if role is None:
-            self.role = "名字是Sephirah"
+            self.role = "名字是小冰"
         else:
-            self.role = "名字是Sephirah，另外：" + role
+            self.role = "名字是小冰，另外：" + role
 
     @property
     def _llm_type(self) -> str:
